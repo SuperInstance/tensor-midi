@@ -1,0 +1,12 @@
+[package]
+name = "tensor-midi"
+version = "0.1.0"
+edition = "2024"
+description = "Tensor-based MIDI timing for musical agent dialogue cadence"
+license = "MIT"
+repository = "https://github.com/SuperInstance/tensor-midi"
+keywords = ["midi", "tensor", "timing", "agent", "cadence"]
+categories = ["data-structures", "multimedia::audio"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
