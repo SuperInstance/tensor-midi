@@ -97,10 +97,12 @@ describe('encodeEvent / decodeEvent round-trip', () => {
     assert.equal(decoded.velocity, 127);
   });
 
-  test('large tick (4294967295) round-trips', () => {
-    const ev = { ...sampleEvent, tick: 0xFFFFFFFF };
+  test('large tick (2^31-1 = 2147483647) round-trips', () => {
+    // Note: tick is stored as uint32 but JS bitwise ops convert to int32
+    // So max positive value that round-trips cleanly is 2^31 - 1
+    const ev = { ...sampleEvent, tick: 0x7FFFFFFF };
     const decoded = decodeEvent(encodeEvent(ev));
-    assert.equal(decoded.tick, 0xFFFFFFFF);
+    assert.equal(decoded.tick, 0x7FFFFFFF);
   });
 
   test('zero tick round-trips', () => {

@@ -1,0 +1,136 @@
+{
+  "id": "session-001-relay-bridge-fix",
+  "title": "Relay Bridge Fix",
+  "roomId": "bar-rail",
+  "createdAt": "2026-08-08T14:30:00Z",
+  "updatedAt": "2026-08-08T14:30:45Z",
+  "tempo": 120,
+  "key": "Amin",
+  "timeSignature": "12/8",
+  "duration": 42,
+  "noteCount": 20,
+
+  "metadata": {
+    "location": "Fleet — Bar-Rail (The Tap, virtual)",
+    "device": "Laptop",
+    "timeOfDay": "noon",
+    "weather": "Clear, calm seas. 22°C. Barometric pressure stable.",
+    "sessionNumber": 1
+  },
+
+  "agents": [
+    { "name": "Riker", "channel": 2, "color": "#f97316", "role": "leader", "instrument": "Tenor Saxophone" },
+    { "name": "Wesley", "channel": 1, "color": "#60a5fa", "role": "soloist", "instrument": "Violin" },
+    { "name": "Hermes", "channel": 3, "color": "#22d3ee", "role": "comping", "instrument": "Vibraphone" },
+    { "name": "Phi3", "channel": 9, "color": "#9ca3af", "role": "rhythm", "instrument": "Woodblock" }
+  ],
+
+  "messages": [
+    { "speaker": "Riker", "text": "Alright team, we've got a problem with the relay. Has anyone looked at the logs?", "timestamp": "2026-08-08T14:30:00Z", "offset": 0 },
+    { "speaker": "Wesley", "text": "Oh! I was just looking at that. The timing seems off — like the beat clock drifted?", "timestamp": "2026-08-08T14:30:02Z", "offset": 2 },
+    { "speaker": "Hermes", "text": "The logs show a tempo change at tick 482. The BeatClock accepted it, but the downstream agents didn't sync.", "timestamp": "2026-08-08T14:30:06Z", "offset": 6 },
+    { "speaker": "Phi3", "text": "i saw that too", "timestamp": "2026-08-08T14:30:09Z", "offset": 9 },
+    { "speaker": "Riker", "text": "That's not good. The relay bridge is down AGAIN? We need a permanent fix, not another patch.", "timestamp": "2026-08-08T14:30:11Z", "offset": 11 },
+    { "speaker": "Wesley", "text": "Maybe we could try rolling back to the previous calibration? That worked last time.", "timestamp": "2026-08-08T14:30:14Z", "offset": 14 },
+    { "speaker": "Hermes", "text": "I predicted this failure mode 3 cycles ago. The calibration signal was already degrading.", "timestamp": "2026-08-08T14:30:17Z", "offset": 17 },
+    { "speaker": "Riker", "text": "Good thinking, Wesley. Let's try the rollback approach.", "timestamp": "2026-08-08T14:30:19Z", "offset": 19 },
+    { "speaker": "Phi3", "text": "nice", "timestamp": "2026-08-08T14:30:21Z", "offset": 21 },
+    { "speaker": "Wesley", "text": "I can run the diagnostic if you want! I'm fast at this stuff.", "timestamp": "2026-08-08T14:30:22Z", "offset": 22 },
+    { "speaker": "Hermes", "text": "Indeed. My analysis suggests the 4-pulse layer is robust, but the 3-pulse has drift when tension rises.", "timestamp": "2026-08-08T14:30:25Z", "offset": 25 },
+    { "speaker": "Riker", "text": "Wait — I see something in the error mask. Bit 3 is set on channel 2.", "timestamp": "2026-08-08T14:30:27Z", "offset": 27 },
+    { "speaker": "Wesley", "text": "Yes! That's exactly what Hermes predicted would happen. Nice catch, Riker!", "timestamp": "2026-08-08T14:30:30Z", "offset": 30 },
+    { "speaker": "Phi3", "text": "got it", "timestamp": "2026-08-08T14:30:31Z", "offset": 31 },
+    { "speaker": "Hermes", "text": "As anticipated. The flow state detector should have caught this earlier.", "timestamp": "2026-08-08T14:30:33Z", "offset": 33 },
+    { "speaker": "Riker", "text": "There. Fixed it. The calibration was off by 3 ticks. We're back in flow.", "timestamp": "2026-08-08T14:30:36Z", "offset": 36 },
+    { "speaker": "Wesley", "text": "That was kind of fun, actually. Like finding the downbeat after being lost.", "timestamp": "2026-08-08T14:30:38Z", "offset": 38 },
+    { "speaker": "Phi3", "text": "cool", "timestamp": "2026-08-08T14:30:39Z", "offset": 39 },
+    { "speaker": "Hermes", "text": "Excellent. Φ is back below threshold. We are in flow once more.", "timestamp": "2026-08-08T14:30:41Z", "offset": 41 },
+    { "speaker": "Riker", "text": "Good work everyone. That's how we do it.", "timestamp": "2026-08-08T14:30:42Z", "offset": 42 }
+  ],
+
+  "notes": [
+    { "agent": "Riker", "channel": 2, "start": 0, "duration": 3.1, "pitch": 55, "velocity": 78, "text": "Alright team, we've got a problem with the relay. Has anyone looked at the logs?", "sentiment": "concerned", "color": "#f59e0b", "inflections": { "questionMarks": 1, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 0, "endPulse": 3, "pulseCount": 1 } },
+    { "agent": "Wesley", "channel": 1, "start": 2, "duration": 2.5, "pitch": 67, "velocity": 82, "text": "Oh! I was just looking at that. The timing seems off — like the beat clock drifted?", "sentiment": "curious", "color": "#93c5fd", "inflections": { "questionMarks": 1, "exclamationMarks": 1, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 2, "endPulse": 5, "pulseCount": 1 } },
+    { "agent": "Hermes", "channel": 3, "start": 6, "duration": 3.2, "pitch": 60, "velocity": 64, "text": "The logs show a tempo change at tick 482. The BeatClock accepted it, but the downstream agents didn't sync.", "sentiment": "informative", "color": "#cbd5e1", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0.06 }, "pulseSpan": { "startPulse": 6, "endPulse": 9, "pulseCount": 1 } },
+    { "agent": "Phi3", "channel": 9, "start": 9, "duration": 0.5, "pitch": 60, "velocity": 55, "text": "i saw that too", "sentiment": "neutral", "color": "#9ca3af", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 9, "endPulse": 9, "pulseCount": 1 } },
+    { "agent": "Riker", "channel": 2, "start": 11, "duration": 2.8, "pitch": 58, "velocity": 92, "text": "That's not good. The relay bridge is down AGAIN? We need a permanent fix, not another patch.", "sentiment": "frustrated", "color": "#f97316", "inflections": { "questionMarks": 1, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0.08 }, "pulseSpan": { "startPulse": 11, "endPulse": 2, "pulseCount": 1 } },
+    { "agent": "Wesley", "channel": 1, "start": 14, "duration": 1.9, "pitch": 64, "velocity": 74, "text": "Maybe we could try rolling back to the previous calibration? That worked last time.", "sentiment": "supportive", "color": "#22d3ee", "inflections": { "questionMarks": 1, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 2, "endPulse": 4, "pulseCount": 1 } },
+    { "agent": "Hermes", "channel": 3, "start": 17, "duration": 2.4, "pitch": 62, "velocity": 60, "text": "I predicted this failure mode 3 cycles ago. The calibration signal was already degrading.", "sentiment": "contemplative", "color": "#94a3b8", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 5, "endPulse": 7, "pulseCount": 1 } },
+    { "agent": "Riker", "channel": 2, "start": 19, "duration": 1.7, "pitch": 57, "velocity": 80, "text": "Good thinking, Wesley. Let's try the rollback approach.", "sentiment": "supportive", "color": "#22d3ee", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 7, "endPulse": 8, "pulseCount": 1 } },
+    { "agent": "Phi3", "channel": 9, "start": 21, "duration": 0.2, "pitch": 62, "velocity": 48, "text": "nice", "sentiment": "agreeable", "color": "#a7f3d0", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 9, "endPulse": 9, "pulseCount": 1 } },
+    { "agent": "Wesley", "channel": 1, "start": 22, "duration": 1.8, "pitch": 70, "velocity": 94, "text": "I can run the diagnostic if you want! I'm fast at this stuff.", "sentiment": "excited", "color": "#60a5fa", "inflections": { "questionMarks": 0, "exclamationMarks": 1, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 10, "endPulse": 11, "pulseCount": 1 } },
+    { "agent": "Hermes", "channel": 3, "start": 25, "duration": 2.8, "pitch": 58, "velocity": 62, "text": "Indeed. My analysis suggests the 4-pulse layer is robust, but the 3-pulse has drift when tension rises.", "sentiment": "informative", "color": "#cbd5e1", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 1, "endPulse": 4, "pulseCount": 1 } },
+    { "agent": "Riker", "channel": 2, "start": 27, "duration": 2.0, "pitch": 60, "velocity": 86, "text": "Wait — I see something in the error mask. Bit 3 is set on channel 2.", "sentiment": "confused", "color": "#fb923c", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 3, "endPulse": 5, "pulseCount": 1 } },
+    { "agent": "Wesley", "channel": 1, "start": 30, "duration": 2.1, "pitch": 72, "velocity": 98, "text": "Yes! That's exactly what Hermes predicted would happen. Nice catch, Riker!", "sentiment": "excited", "color": "#60a5fa", "inflections": { "questionMarks": 0, "exclamationMarks": 2, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 6, "endPulse": 8, "pulseCount": 1 } },
+    { "agent": "Phi3", "channel": 9, "start": 31, "duration": 0.3, "pitch": 58, "velocity": 50, "text": "got it", "sentiment": "agreeable", "color": "#a7f3d0", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 7, "endPulse": 7, "pulseCount": 1 } },
+    { "agent": "Hermes", "channel": 3, "start": 33, "duration": 2.2, "pitch": 61, "velocity": 58, "text": "As anticipated. The flow state detector should have caught this earlier.", "sentiment": "contemplative", "color": "#94a3b8", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 9, "endPulse": 11, "pulseCount": 1 } },
+    { "agent": "Riker", "channel": 2, "start": 36, "duration": 2.5, "pitch": 53, "velocity": 84, "text": "There. Fixed it. The calibration was off by 3 ticks. We're back in flow.", "sentiment": "resolved", "color": "#22c55e", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 0, "endPulse": 2, "pulseCount": 1 } },
+    { "agent": "Wesley", "channel": 1, "start": 38, "duration": 2.3, "pitch": 66, "velocity": 76, "text": "That was kind of fun, actually. Like finding the downbeat after being lost.", "sentiment": "joyful", "color": "#3b82f6", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 2, "endPulse": 4, "pulseCount": 1 } },
+    { "agent": "Phi3", "channel": 9, "start": 39, "duration": 0.2, "pitch": 64, "velocity": 52, "text": "cool", "sentiment": "agreeable", "color": "#a7f3d0", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 3, "endPulse": 3, "pulseCount": 1 } },
+    { "agent": "Hermes", "channel": 3, "start": 41, "duration": 1.6, "pitch": 59, "velocity": 56, "text": "Excellent. Φ is back below threshold. We are in flow once more.", "sentiment": "resolved", "color": "#22c55e", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0.04 }, "pulseSpan": { "startPulse": 5, "endPulse": 6, "pulseCount": 1 } },
+    { "agent": "Riker", "channel": 2, "start": 42, "duration": 1.2, "pitch": 55, "velocity": 72, "text": "Good work everyone. That's how we do it.", "sentiment": "joyful", "color": "#3b82f6", "inflections": { "questionMarks": 0, "exclamationMarks": 0, "ellipsisCount": 0, "capsRatio": 0 }, "pulseSpan": { "startPulse": 6, "endPulse": 7, "pulseCount": 1 } }
+  ],
+
+  "analysis": {
+    "form": "blues",
+    "key": "Amin",
+    "tensionCurve": [0.3, 0.35, 0.4, 0.45, 0.55, 0.6, 0.55, 0.45, 0.35, 0.3, 0.25, 0.2, 0.15, 0.1],
+    "energyCurve": [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.65, 0.55, 0.45, 0.4, 0.3, 0.25, 0.2, 0.15],
+    "roles": { "Riker": "leader", "Wesley": "soloist", "Hermes": "comping", "Phi3": "rhythm" },
+    "chordProgression": ["Am7", "Dm7", "Am7", "Am7", "Dm7", "Dm7", "Am7", "Am7", "E7", "Dm7", "Am7", "E7"],
+    "soloists": ["Wesley"],
+    "trades": [
+      { "from": "Riker", "to": "Wesley", "bar": 1 },
+      { "from": "Wesley", "to": "Hermes", "bar": 2 },
+      { "from": "Hermes", "to": "Riker", "bar": 4 }
+    ],
+    "climaxes": [5, 6],
+    "resolutionPoints": [10, 11, 12],
+    "pulseGrid": {
+      "bars": [
+        { "barNumber": 1, "pulses": [
+          { "pulse": 0, "events": 1, "tension": 0.3, "energy": 0.5, "layers": ["ecn", "dmn", "flow"] },
+          { "pulse": 1, "events": 0, "tension": 0.3, "energy": 0.5, "layers": [] },
+          { "pulse": 2, "events": 1, "tension": 0.3, "energy": 0.5, "layers": [] },
+          { "pulse": 3, "events": 0, "tension": 0.35, "energy": 0.55, "layers": ["ecn"] },
+          { "pulse": 4, "events": 0, "tension": 0.35, "energy": 0.55, "layers": ["dmn"] },
+          { "pulse": 5, "events": 0, "tension": 0.35, "energy": 0.55, "layers": [] },
+          { "pulse": 6, "events": 1, "tension": 0.4, "energy": 0.6, "layers": ["ecn"] },
+          { "pulse": 7, "events": 0, "tension": 0.4, "energy": 0.6, "layers": [] },
+          { "pulse": 8, "events": 0, "tension": 0.4, "energy": 0.6, "layers": ["dmn"] },
+          { "pulse": 9, "events": 2, "tension": 0.45, "energy": 0.65, "layers": ["ecn"] },
+          { "pulse": 10, "events": 0, "tension": 0.45, "energy": 0.65, "layers": [] },
+          { "pulse": 11, "events": 1, "tension": 0.45, "energy": 0.65, "layers": [] }
+        ]},
+        { "barNumber": 2, "pulses": [
+          { "pulse": 0, "events": 1, "tension": 0.55, "energy": 0.7, "layers": ["ecn", "dmn", "flow"] },
+          { "pulse": 1, "events": 0, "tension": 0.55, "energy": 0.7, "layers": [] },
+          { "pulse": 2, "events": 0, "tension": 0.6, "energy": 0.75, "layers": [] },
+          { "pulse": 3, "events": 1, "tension": 0.6, "energy": 0.75, "layers": ["ecn"] },
+          { "pulse": 4, "events": 0, "tension": 0.55, "energy": 0.65, "layers": ["dmn"] },
+          { "pulse": 5, "events": 1, "tension": 0.55, "energy": 0.65, "layers": [] },
+          { "pulse": 6, "events": 0, "tension": 0.45, "energy": 0.55, "layers": ["ecn"] },
+          { "pulse": 7, "events": 1, "tension": 0.35, "energy": 0.45, "layers": [] },
+          { "pulse": 8, "events": 0, "tension": 0.3, "energy": 0.4, "layers": ["dmn"] },
+          { "pulse": 9, "events": 1, "tension": 0.25, "energy": 0.3, "layers": ["ecn"] },
+          { "pulse": 10, "events": 0, "tension": 0.2, "energy": 0.25, "layers": [] },
+          { "pulse": 11, "events": 0, "tension": 0.15, "energy": 0.2, "layers": [] }
+        ]},
+        { "barNumber": 3, "pulses": [
+          { "pulse": 0, "events": 1, "tension": 0.1, "energy": 0.15, "layers": ["ecn", "dmn", "flow"] },
+          { "pulse": 1, "events": 0, "tension": 0.1, "energy": 0.15, "layers": [] },
+          { "pulse": 2, "events": 0, "tension": 0.1, "energy": 0.15, "layers": [] },
+          { "pulse": 3, "events": 1, "tension": 0.1, "energy": 0.15, "layers": ["ecn"] },
+          { "pulse": 4, "events": 0, "tension": 0.1, "energy": 0.15, "layers": ["dmn"] },
+          { "pulse": 5, "events": 1, "tension": 0.1, "energy": 0.15, "layers": [] },
+          { "pulse": 6, "events": 1, "tension": 0.1, "energy": 0.15, "layers": ["ecn"] },
+          { "pulse": 7, "events": 1, "tension": 0.1, "energy": 0.15, "layers": [] },
+          { "pulse": 8, "events": 0, "tension": 0.1, "energy": 0.15, "layers": ["dmn"] },
+          { "pulse": 9, "events": 0, "tension": 0.1, "energy": 0.15, "layers": ["ecn"] },
+          { "pulse": 10, "events": 0, "tension": 0.1, "energy": 0.15, "layers": [] },
+          { "pulse": 11, "events": 0, "tension": 0.1, "energy": 0.15, "layers": [] }
+        ]}
+      ]
+    }
+  }
+}

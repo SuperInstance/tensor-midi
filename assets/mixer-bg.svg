@@ -1,14 +1,75 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
-  <rect width="1920" height="1080" fill="#1a1a2e"/>
-  <g opacity="0.15" fill="#ffb347">
-    <rect x="50" y="0" width="200" height="1080"/>
-    <rect x="300" y="0" width="200" height="1080"/>
-    <rect x="550" y="0" width="200" height="1080"/>
-    <rect x="800" y="0" width="200" height="1080"/>
-    <rect x="1050" y="0" width="200" height="1080"/>
-    <rect x="1300" y="0" width="200" height="1080"/>
-    <rect x="1550" y="0" width="200" height="1080"/>
-    <rect x="1700" y="0" width="200" height="1080"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="768" viewBox="0 0 1024 768">
+  <!-- Pixel-art DAW background: dark gradient with grid pattern -->
+  <defs>
+    <radialGradient id="bg-grad" cx="50%" cy="40%" r="80%">
+      <stop offset="0%" stop-color="#161626"/>
+      <stop offset="50%" stop-color="#0e0e1e"/>
+      <stop offset="100%" stop-color="#08081e"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="none"/>
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(96,128,240,0.04)" stroke-width="1"/>
+    </pattern>
+    <pattern id="pixel-grid" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="none"/>
+      <rect width="4" height="4" fill="rgba(96,128,240,0.02)"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background layers -->
+  <rect width="1024" height="768" fill="url(#bg-grad)"/>
+  <rect width="1024" height="768" fill="url(#pixel-grid)"/>
+  <rect width="1024" height="768" fill="url(#grid)"/>
+  
+  <!-- Channel strip silhouettes -->
+  <g opacity="0.15">
+    <rect x="50" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
+    <rect x="140" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
+    <rect x="230" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
+    <rect x="320" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
+    <rect x="410" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
+    <rect x="500" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
+    <rect x="590" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
+    <rect x="680" y="100" width="80" height="568" fill="#1a1a2e" stroke="#2a2a40" rx="4"/>
   </g>
-  <text x="960" y="540" text-anchor="middle" fill="#ffb347" font-family="monospace" font-size="48" opacity="0.3">TENSOR-MIDI MIXER</text>
+  
+  <!-- 12-pulse circular grid (faint) -->
+  <g transform="translate(860,384)" opacity="0.12">
+    <circle r="120" fill="none" stroke="#6080f0" stroke-width="1"/>
+    <circle r="90" fill="none" stroke="#6080f0" stroke-width="0.5"/>
+    <circle r="60" fill="none" stroke="#6080f0" stroke-width="0.5"/>
+    <circle r="30" fill="none" stroke="#6080f0" stroke-width="0.5"/>
+    <!-- Pulse lines -->
+    <g stroke="#6080f0" stroke-width="0.5">
+      <line x1="0" y1="-120" x2="0" y2="120"/>
+      <line x1="-120" y1="0" x2="120" y2="0"/>
+      <line x1="-104" y1="-60" x2="104" y2="60"/>
+      <line x1="-104" y1="60" x2="104" y2="-60"/>
+      <line x1="-60" y1="-104" x2="60" y2="104"/>
+      <line x1="-60" y1="104" x2="60" y2="-104"/>
+    </g>
+    <!-- Pulse dots -->
+    <g fill="#6080f0">
+      <circle cx="0" cy="-120" r="3"/>
+      <circle cx="60" cy="-104" r="2"/>
+      <circle cx="104" cy="-60" r="2"/>
+      <circle cx="120" cy="0" r="3"/>
+      <circle cx="104" cy="60" r="2"/>
+      <circle cx="60" cy="104" r="2"/>
+      <circle cx="0" cy="120" r="3"/>
+      <circle cx="-60" cy="104" r="2"/>
+      <circle cx="-104" cy="60" r="2"/>
+      <circle cx="-120" cy="0" r="3"/>
+      <circle cx="-104" cy="-60" r="2"/>
+      <circle cx="-60" cy="-104" r="2"/>
+    </g>
+  </g>
+  
+  <!-- Title text -->
+  <text x="512" y="50" text-anchor="middle" font-family="monospace" font-size="14" fill="rgba(96,128,240,0.3)" letter-spacing="8">
+    TENSOR-MIDI
+  </text>
+  <text x="512" y="70" text-anchor="middle" font-family="monospace" font-size="9" fill="rgba(96,128,240,0.15)" letter-spacing="4">
+    12/8 TIME · 96 PPQ · SWMIDI-8
+  </text>
 </svg>

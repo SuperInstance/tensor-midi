@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- Chart plotter aesthetic: nautical navigation with jazz coloring -->
+  <defs>
+    <radialGradient id="chart-bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0a1520"/>
+      <stop offset="100%" stop-color="#050510"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="512" height="512" fill="url(#chart-bg)"/>
+  
+  <!-- Grid -->
+  <g stroke="rgba(96,128,240,0.08)" stroke-width="0.5">
+    <line x1="0" y1="128" x2="512" y2="128"/>
+    <line x1="0" y1="256" x2="512" y2="256"/>
+    <line x1="0" y1="384" x2="512" y2="384"/>
+    <line x1="128" y1="0" x2="128" y2="512"/>
+    <line x1="256" y1="0" x2="256" y2="512"/>
+    <line x1="384" y1="0" x2="384" y2="512"/>
+  </g>
+  
+  <!-- Coastline -->
+  <path d="M 50 200 Q 100 150 180 170 T 320 200 Q 400 180 460 230"
+        fill="none" stroke="rgba(96,240,192,0.2)" stroke-width="2"/>
+  <path d="M 80 350 Q 150 320 220 340 T 380 360 Q 440 340 470 370"
+        fill="none" stroke="rgba(96,240,192,0.15)" stroke-width="2"/>
+  
+  <!-- Range rings centered -->
+  <g stroke="rgba(96,128,240,0.06)" fill="none">
+    <circle cx="256" cy="256" r="60"/>
+    <circle cx="256" cy="256" r="100"/>
+    <circle cx="256" cy="256" r="150"/>
+    <circle cx="256" cy="256" r="200"/>
+  </g>
+  
+  <!-- Vessel trail -->
+  <path d="M 120 350 Q 160 300 200 280 T 280 220 Q 320 200 360 180 T 400 130"
+        fill="none" stroke="#6080f0" stroke-width="2" filter="url(#glow)" opacity="0.6"/>
+  
+  <!-- Waypoints -->
+  <g filter="url(#glow)">
+    <circle cx="120" cy="350" r="5" fill="#60f0c0"/>
+    <circle cx="200" cy="280" r="5" fill="#f0c060"/>
+    <circle cx="280" cy="220" r="5" fill="#60f0c0"/>
+    <circle cx="360" cy="180" r="5" fill="#f06080"/>
+    <circle cx="400" cy="130" r="5" fill="#60f0c0"/>
+  </g>
+  
+  <!-- Vessel (triangle) -->
+  <g transform="translate(400,130) rotate(-30)" filter="url(#glow)">
+    <polygon points="12,0 -8,7 -5,0 -8,-7" fill="#60f0c0"/>
+  </g>
+  
+  <!-- Compass rose -->
+  <g transform="translate(450,62)">
+    <circle r="28" fill="none" stroke="rgba(96,128,240,0.3)" stroke-width="1"/>
+    <circle r="22" fill="none" stroke="rgba(96,128,240,0.2)" stroke-width="0.5"/>
+    <text x="0" y="-32" text-anchor="middle" font-family="monospace" font-size="10" fill="#f06080" font-weight="bold">N</text>
+    <text x="0" y="40" text-anchor="middle" font-family="monospace" font-size="8" fill="#707088">S</text>
+    <text x="-36" y="3" text-anchor="middle" font-family="monospace" font-size="8" fill="#707088">W</text>
+    <text x="36" y="3" text-anchor="middle" font-family="monospace" font-size="8" fill="#707088">E</text>
+  </g>
+  
+  <!-- Labels -->
+  <text x="256" y="490" text-anchor="middle" font-family="monospace" font-size="10" fill="rgba(96,128,240,0.3)" letter-spacing="3">
+    CHART PLOTTER
+  </text>
+</svg>
