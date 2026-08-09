@@ -42,7 +42,45 @@ tensor-midi/
 ├── assets/
 │   ├── mixer-bg.svg         # Pixel-art DAW background
 │   └── chart-aesthetic.svg  # Chart plotter aesthetic
+├── game-engine/
+│   ├── platonic-engine.js   # Platonic Randomness Game Engine
+│   ├── platonic-engine.test.js
+│   └── platonic-rng.js      # JS port of the Platonic RNG library
 └── ai-writings/             # Creative writings from the ensemble
+```
+
+## Platonic Randomness Game Engine
+
+A game system where the **choice of Platonic solid is the game design decision**. Events arrive as SWMIDI-8 bytes; each system is driven by its own Platonic-solid RNG orbit; board positions evolve like Catan dice; and every event returns both data and narrative.
+
+| System      | Solid        | Fold | SWMIDI Channel | Feel |
+|-------------|--------------|------|----------------|------|
+| Combat      | Tetrahedron  | 4    | 0              | fast, readable |
+| Social      | Icosahedron  | 12   | 1              | pulse-grid aligned |
+| Weather     | Dodecahedron | 20   | 2              | complex, slow |
+| Resources   | Cube         | 8    | 3              | steady, plannable |
+| Exploration | Octahedron   | 6    | 4              | cardinal directions |
+| Meta        | —            | —    | 15             | turn end, query, reset |
+
+SWMIDI mapping:
+
+- `channel` selects the system.
+- `pitch` carries the player/source id.
+- `velocity` carries intensity.
+- `errorMask` carries friction/condition flags.
+- `tick` carries the timestamp.
+- `NoteOn` initiates an action; `NoteOff` resolves/counters it; `ControlChange` adjusts a position; `Meta` on channel 15 is a meta command.
+
+Run the demo:
+
+```bash
+node game-engine/demo.js
+```
+
+Run the tests:
+
+```bash
+node --test game-engine/platonic-engine.test.js
 ```
 
 ## SWMIDI-8 Format
