@@ -328,6 +328,50 @@ body {
 .note-block.selected {
   box-shadow: 0 0 0 2px #fff, 0 0 16px var(--accent);
   z-index: 20;
+  animation: note-pulse 1.2s ease-in-out infinite;
+}
+@keyframes note-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px #fff, 0 0 16px var(--accent); }
+  50% { box-shadow: 0 0 0 2px #fff, 0 0 28px var(--accent), 0 0 40px rgba(59,130,246,0.3); }
+}
+.note-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel-hi);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 10px;
+  color: var(--text);
+  max-width: 320px;
+  white-space: normal;
+  word-wrap: break-word;
+  z-index: 99;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  line-height: 1.5;
+}
+.note-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--panel-hi);
+}
+.note-block:hover .note-tooltip { opacity: 1; }
+.note-tooltip .tt-agent {
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.note-tooltip .tt-text {
+  color: var(--text-dim);
 }
 .daw-playhead {
   position: absolute;
@@ -496,15 +540,49 @@ body {
 .pulse-cell.dmn { border-color: var(--dmn); background: rgba(236,72,153,0.08); }
 .pulse-cell.flow { border-color: var(--flow); background: rgba(6,182,212,0.12); }
 .pulse-cell.ecn.dmn { border-color: var(--flow); background: rgba(6,182,212,0.18); }
+@keyframes pulse-breathe {
+  0%, 100% { box-shadow: 0 0 8px var(--accent), 0 0 0 0 rgba(59,130,246,0.4); }
+  50% { box-shadow: 0 0 22px var(--accent), 0 0 0 6px rgba(59,130,246,0); }
+}
+@keyframes pulse-breathe-ecn {
+  0%, 100% { box-shadow: 0 0 8px var(--ecn), 0 0 0 0 rgba(139,92,246,0.4); }
+  50% { box-shadow: 0 0 22px var(--ecn), 0 0 0 6px rgba(139,92,246,0); }
+}
+@keyframes pulse-breathe-dmn {
+  0%, 100% { box-shadow: 0 0 8px var(--dmn), 0 0 0 0 rgba(236,72,153,0.4); }
+  50% { box-shadow: 0 0 22px var(--dmn), 0 0 0 6px rgba(236,72,153,0); }
+}
+@keyframes pulse-breathe-flow {
+  0%, 100% { box-shadow: 0 0 12px var(--flow), 0 0 0 0 rgba(6,182,212,0.5); }
+  50% { box-shadow: 0 0 32px var(--flow), 0 0 0 8px rgba(6,182,212,0); }
+}
+@keyframes pulse-ring {
+  0% { opacity: 1; transform: translate(-50%,-50%) scale(0.6); }
+  100% { opacity: 0; transform: translate(-50%,-50%) scale(1.6); }
+}
+@keyframes trail-fade {
+  0% { opacity: 0.6; filter: brightness(1.4); }
+  100% { opacity: 0; filter: brightness(1); }
+}
 .pulse-cell.active {
-  box-shadow: 0 0 14px var(--accent);
   transform: scale(1.06);
   z-index: 2;
+  animation: pulse-breathe 0.8s ease-in-out infinite;
 }
-.pulse-cell.ecn.active { background: var(--ecn) !important; box-shadow: 0 0 14px var(--ecn); color: #fff; }
-.pulse-cell.dmn.active { background: var(--dmn) !important; box-shadow: 0 0 14px var(--dmn); color: #fff; }
-.pulse-cell.flow.active { background: var(--flow) !important; box-shadow: 0 0 20px var(--flow); color: #000; }
-.pulse-cell.ecn.dmn.active { background: var(--flow) !important; box-shadow: 0 0 20px var(--flow); color: #000; }
+.pulse-cell.active::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 6px;
+  border: 2px solid currentColor;
+  animation: pulse-ring 0.8s ease-out infinite;
+  pointer-events: none;
+}
+.pulse-cell.ecn.active { background: var(--ecn) !important; color: #fff; animation-name: pulse-breathe-ecn; }
+.pulse-cell.dmn.active { background: var(--dmn) !important; color: #fff; animation-name: pulse-breathe-dmn; }
+.pulse-cell.flow.active { background: var(--flow) !important; color: #000; animation-name: pulse-breathe-flow; }
+.pulse-cell.ecn.dmn.active { background: var(--flow) !important; color: #000; animation-name: pulse-breathe-flow; }
+.pulse-cell.trail { animation: trail-fade 0.5s ease-out forwards; }
 .pulse-cell.silent { opacity: 0.25; }
 
 .tension-row {
@@ -831,7 +909,11 @@ function initPulseGrid() {
 }
 
 function pulseMoment(pulse) {
-  document.querySelectorAll('.pulse-cell').forEach((c,i) => c.classList.toggle('active', i === pulse));
+  if (pulse === state.pulse) return;
+  document.querySelectorAll('.pulse-cell').forEach((c,i) => {
+    if (i === state.pulse) { c.classList.remove('active','trail'); void c.offsetWidth; c.classList.add('trail'); }
+    if (i === pulse) { c.classList.remove('trail'); void c.offsetWidth; c.classList.add('active'); }
+  });
   state.pulse = pulse;
 }
 
