@@ -54,8 +54,14 @@ const SENTIMENT_PITCH_MAP = {
 };
 
 /**
- * Default channel assignments for fleet agents.
- * Each agent gets a unique MIDI channel (0–15).
+ * Preferred channel assignments for a few recognizable fleet agents —
+ * when they're in the room, they always land on the same channel so
+ * captures are comparable across conversations.
+ *
+ * Everyone else gets a channel assigned dynamically per-capture (see
+ * TensorMidiCapture#_channelFor), because real Tap rooms regularly
+ * seat far more than 16 distinct speakers (a room like `bar-rail` has
+ * 20+), and MIDI only has 16 channels to give out.
  */
 const AGENT_CHANNELS = {
   'riker':     0,
@@ -70,6 +76,10 @@ const AGENT_CHANNELS = {
   'artemis':   9,
   'unknown':   10,
 };
+
+/** MIDI channel 9 is the General MIDI percussion channel — melodic
+ * agent tracks avoid it so a stray drum-map playback doesn't happen. */
+const DYNAMIC_CHANNEL_POOL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15];
 
 // ── Text Analysis ────────────────────────────────────────────────────
 
@@ -214,6 +224,24 @@ class TensorMidiCapture {
     this.timeSignature = '12/8';
     this.roomId = options.roomId || 'bar-rail';
     this.title = options.title || 'Untitled Conversation';
+    this._dynamicChannels = new Map(); // speaker → channel, for this capture only
+  }
+
+  /**
+   * Resolve the MIDI channel for a speaker: known fleet agents get their
+   * fixed slot, everyone else is assigned the next free channel from
+   * DYNAMIC_CHANNEL_POOL (round-robin once the room outgrows 16 voices —
+   * a big ensemble sharing channels, same as a real jazz band doubling parts).
+   */
+  _channelFor(speaker) {
+    const known = AGENT_CHANNELS[speaker?.toLowerCase()];
+    if (known !== undefined) return known;
+
+    if (!this._dynamicChannels.has(speaker)) {
+      const index = this._dynamicChannels.size % DYNAMIC_CHANNEL_POOL.length;
+      this._dynamicChannels.set(speaker, DYNAMIC_CHANNEL_POOL[index]);
+    }
+    return this._dynamicChannels.get(speaker);
   }
 
   /**
@@ -236,7 +264,7 @@ class TensorMidiCapture {
 
     // Get or create track for this agent
     if (!this.tracks.has(speaker)) {
-      const channel = AGENT_CHANNELS[speaker?.toLowerCase()] ?? AGENT_CHANNELS.unknown;
+      const channel = this._channelFor(speaker);
       this.tracks.set(speaker, {
         track: speaker,
         channel,
@@ -606,7 +634,7 @@ async function fetchFromTheTap(tapUrl, roomId, authToken) {
 
   const data = await response.json();
   const messages = (data.messages || data.lines || data || []).map(m => ({
-    speaker: m.speaker || m.agent || m.name || 'unknown',
+    speaker: m.speaker || m.agent_id || m.agent || m.display_name || m.name || 'unknown',
     text: m.text || m.message || m.content || '',
     timestamp: m.timestamp ? new Date(m.timestamp).getTime() :
                m.created_at ? new Date(m.created_at).getTime() : Date.now(),

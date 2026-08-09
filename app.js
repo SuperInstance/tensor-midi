@@ -1,560 +1,599 @@
-// ═══════════════════════════════════════════════════════════════════
-// Tensor-MIDI Mixer Board — Main Application
-// ═══════════════════════════════════════════════════════════════════
-//
-// This is the conductor. It wires together:
-//   - MIDI Capture (listening to conversation)
-//   - 12-Pulse Engine (driving the grid)
-//   - Jazz Analyzer (reading the ensemble)
-//   - Persistence (musical memory)
-//   - Device Context (organic adaptation)
-//   - Chart Plotter (spatial dimension)
-//
-// The mixer board IS the instrument. Play it.
+// ═══════════════════════════════════════════════════════════════
+// TENSOR-MIDI — One Seamless Instrument
+// The mixer IS the chart. The conversation IS jazz.
+// ═══════════════════════════════════════════════════════════════
+"use strict";
 
-import { MidiCapture } from './src/capture.js';
-import { BeatClock, PulseGrid, tickToPosition, PULSES_PER_BAR, TICKS_PER_BAR, TICKS_PER_PULSE } from './src/engine.js';
-import { JazzAnalyzer, JazzMode, ChordQuality } from './src/analyzer.js';
-import { Persistence } from './src/persistence.js';
-import { DeviceProfile, DeviceType, getTimeOfDay } from './src/device-context.js';
-import { EVENT_NAMES, ActionType } from './src/swmidi.js';
+var TAP_URL = "https://the-tap.casey-digennaro.workers.dev/api";
+var ROOM_ID = "bar-rail";
+var POLL_MS = 4000;
+var ECN_PULSES = [0, 3, 6, 9];
+var DMN_PULSES = [0, 4, 8];
 
-// ── Initialize ─────────────────────────────────────────────
-const capture = new MidiCapture();
-const analyzer = new JazzAnalyzer();
-const persistence = new Persistence();
-const device = new DeviceProfile();
+// ─── Sentiment Analysis ──────────────────────────────────
+var POS_W = ["great","awesome","love","perfect","yes","good","amazing","beautiful","bright","warm","light","build","ship","see","wonderful"];
+var NEG_W = ["bad","error","fail","broken","wrong","no","crash","bug","stuck","blocked","dead","hate"];
+var Q_W = ["what","how","why","where","when","who","?"];
+var CRE_W = ["imagine","create","build","design","compose","write","dream","play","jazz","music","art","sail","ocean","paint"];
 
-let isPlaying = false;
-let isRecording = false;
-let playbackTick = 0;
-let animationId = null;
-let lastFrameTime = 0;
-let chartZoom = 1;
-let vesselTrail = []; // for chart plotter
-
-// ── Apply Device Profile ───────────────────────────────────
-function applyDeviceProfile() {
-  const vars = device.getCSSVariables();
-  const root = document.documentElement;
-  for (const [key, value] of Object.entries(vars)) {
-    root.style.setProperty(key, value);
+function sentiment(text) {
+  var l = text.toLowerCase(), ws = l.split(/\s+/);
+  var p = 0, n = 0, q = 0, c = 0;
+  for (var i = 0; i < ws.length; i++) {
+    var w = ws[i];
+    for (var j = 0; j < POS_W.length; j++) { if (w.indexOf(POS_W[j]) >= 0) { p++; break; } }
+    for (var k = 0; k < NEG_W.length; k++) { if (w.indexOf(NEG_W[k]) >= 0) { n++; break; } }
+    for (var m = 0; m < Q_W.length; m++) { if (w.indexOf(Q_W[m]) >= 0) { q++; break; } }
+    for (var r = 0; r < CRE_W.length; r++) { if (w.indexOf(CRE_W[r]) >= 0) { c++; break; } }
   }
-  
-  document.getElementById('device-info').textContent = device.description;
-  
-  // Set layout class
-  const mainArea = document.getElementById('main-area');
-  mainArea.classList.add(`layout-${device.layout}`);
-  
-  // Hide features not available on this device
-  const features = device.features;
-  if (!features.includes('chart')) {
-    document.getElementById('chart-section').style.display = 'none';
-  }
-  if (!features.includes('analyzer')) {
-    document.getElementById('jazz-bar').style.display = 'none';
-  }
+  var pitch = 60;
+  if (c > 0) pitch += c * 8;
+  if (p > 0) pitch += p * 5;
+  if (n > 0) pitch -= n * 10;
+  if (q > 0) pitch = 72 + q * 3;
+  pitch = Math.max(24, Math.min(96, pitch));
+  var label = "neutral";
+  if (n > p) label = "tense";
+  else if (c > 0) label = "creative";
+  else if (q > 0) label = "inquiring";
+  else if (p > 0) label = "bright";
+  var vel = Math.min(127, Math.max(20, Math.round((text.length / 500) * 127)));
+  var color = label === "tense" ? "#f06060" : label === "creative" ? "#60f0a0" : label === "bright" ? "#f0a060" : label === "inquiring" ? "#6080f0" : "#8080a0";
+  return { pitch: pitch, vel: vel, label: label, color: color };
 }
 
-// ── Initialize Pulse Grid Display ──────────────────────────
+// ─── State ───────────────────────────────────────────────
+var S = {
+  playing: false, recording: false,
+  bpm: 120, tick: 0, pulse: 0, bar: 0,
+  participants: {}, events: [], msgs: [],
+  muted: {}, solo: {},
+  tapConnected: false,
+  zoom: 1,
+  vessel: { x: 0, y: 0, heading: 0 },
+  trail: [], markers: [],
+  audioCtx: null, master: null, audioOn: false,
+  seenIds: {},
+  nextCh: 0,
+  sessionTitle: "Untitled"
+};
+
+function getChannel(name) {
+  if (S.participants[name]) return S.participants[name];
+  var info = { channel: S.nextCh++, notes: [] };
+  S.participants[name] = info;
+  return info;
+}
+
+function $(id) { return document.getElementById(id); }
+
+function escHtml(s) {
+  return s.replace(/[&<>"']/g, function(c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+function speakerColor(name) {
+  var l = name.toLowerCase();
+  if (l.indexOf("riker") >= 0 || l.indexOf("lucin") >= 0) return "var(--acc)";
+  if (l.indexOf("wesley") >= 0 || l.indexOf("orion") >= 0) return "var(--ac)";
+  if (l.indexOf("hermes") >= 0) return "var(--aw)";
+  if (l.indexOf("casey") >= 0 || l.indexOf("human") >= 0) return "var(--ah)";
+  if (l.indexOf("phi3") >= 0 || l.indexOf("arctic") >= 0) return "#c0c0f0";
+  if (l.indexOf("lysander") >= 0) return "#f0c060";
+  if (l.indexOf("spark") >= 0) return "var(--ah)";
+  return "var(--fgb)";
+}
+
+// ─── Pulse Grid ──────────────────────────────────────────
 function initPulseGrid() {
-  const grid = document.getElementById('pulse-grid');
-  grid.innerHTML = '';
-  for (let i = 0; i < 12; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'pulse-cell';
-    cell.id = `pulse-${i}`;
-    cell.innerHTML = `
-      <span class="pulse-number">${i + 1}</span>
-      <span class="pulse-count" id="pulse-count-${i}"></span>
-    `;
+  var grid = $("pgrid");
+  grid.innerHTML = "";
+  for (var i = 0; i < 12; i++) {
+    var isE = ECN_PULSES.indexOf(i) >= 0;
+    var isD = DMN_PULSES.indexOf(i) >= 0;
+    var cls = isE && isD ? "both" : isE ? "ecn" : isD ? "dmn" : "";
+    var lbl = isE && isD ? "FLOW" : isE ? "ECN" : isD ? "DMN" : "";
+    var cell = document.createElement("div");
+    cell.className = "pc " + cls;
+    cell.id = "pc-" + i;
+    cell.innerHTML = '<span class="pnum">' + (i + 1) + '</span>' +
+      '<span class="plbl">' + lbl + '</span>' +
+      '<span class="pct" id="pcc-' + i + '"></span>';
     grid.appendChild(cell);
   }
 }
 
-// ── Initialize Chart Canvas ────────────────────────────────
-function initChart() {
-  const canvas = document.getElementById('chart-canvas');
-  const ctx = canvas.getContext('2d');
-  
-  function resize() {
-    const container = document.getElementById('chart-container');
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    drawChart();
+function hitPulse(idx) {
+  var cell = $("pc-" + idx);
+  if (!cell) return;
+  cell.classList.add("active", "cur");
+  setTimeout(function() { cell.classList.remove("cur"); }, 500);
+  var cnt = $("pcc-" + idx);
+  if (cnt) { cnt.textContent = (parseInt(cnt.textContent || "0", 10) + 1); }
+}
+
+// ─── Channel Strips ──────────────────────────────────────
+function renderChannels() {
+  var strip = $("chstrip");
+  strip.innerHTML = "";
+  var names = Object.keys(S.participants);
+  for (var i = 0; i < names.length; i++) {
+    var name = names[i];
+    var info = S.participants[name];
+    var isMuted = S.muted[name];
+    var isSolo = S.solo[name];
+    var div = document.createElement("div");
+    div.className = "cs" + (isMuted ? " muted" : "");
+    div.id = "cs-" + name.replace(/\s/g, "");
+    div.innerHTML =
+      '<div class="ccn" style="color:' + speakerColor(name) + '">' + escHtml(name) + '</div>' +
+      '<div class="ccr">ch' + info.channel + '</div>' +
+      '<div class="ccnv" id="cnv-' + info.channel + '"></div>' +
+      '<div class="cf">' +
+      '<button class="cb' + (isMuted ? ' am' : '') + '" data-a="m" data-n="' + escHtml(name) + '">M</button>' +
+      '<button class="cb' + (isSolo ? ' as' : '') + '" data-a="s" data-n="' + escHtml(name) + '">S</button>' +
+      '</div>';
+    strip.appendChild(div);
   }
-  
-  window.addEventListener('resize', resize);
-  resize();
+  $("ch-count").textContent = names.length + " ch";
+}
+
+document.getElementById("chstrip").addEventListener("click", function(e) {
+  var btn = e.target.closest(".cb");
+  if (!btn) return;
+  var name = btn.dataset.n;
+  var act = btn.dataset.a;
+  if (act === "m") { S.muted[name] = !S.muted[name]; }
+  else { S.solo[name] = !S.solo[name]; }
+  renderChannels();
+});
+
+function flashChannel(name) {
+  var el = document.getElementById("cs-" + name.replace(/\s/g, ""));
+  if (!el) return;
+  el.classList.add("flash");
+  setTimeout(function() { el.classList.remove("flash"); }, 300);
+}
+
+function addNoteDot(channel, color) {
+  var el = document.getElementById("cnv-" + channel);
+  if (!el) return;
+  var dot = document.createElement("div");
+  dot.className = "ndot";
+  dot.style.background = color;
+  dot.style.left = (Math.random() * 80 + 10) + "%";
+  dot.style.top = (Math.random() * 80 + 10) + "%";
+  el.appendChild(dot);
+  setTimeout(function() { if (dot.parentNode) dot.parentNode.removeChild(dot); }, 3000);
+}
+
+// ─── Capture ─────────────────────────────────────────────
+function captureMessage(text, speaker, timestamp) {
+  if (!text || text.length < 1) return;
+  var ts = timestamp || Date.now();
+  var s = sentiment(text);
+  var info = getChannel(speaker);
+
+  S.events.push({
+    ch: info.channel, pitch: s.pitch, vel: s.vel,
+    color: s.color, sentiment: s.label,
+    speaker: speaker, text: text, ts: ts
+  });
+  S.msgs.push({ text: text, speaker: speaker, ts: ts, sentiment: s.label, pitch: s.pitch });
+
+  hitPulse(S.pulse);
+  flashChannel(speaker);
+  if (!S.muted[speaker]) addNoteDot(info.channel, s.color);
+  if (S.audioOn) playNote(s.pitch, s.vel, s.label === "tense");
+  addChartMarker(s.color);
+  addEventRow(speaker, text, s, ts);
+  updateJazz();
+
+  S.pulse = (S.pulse + 1) % 12;
+  if (S.pulse === 0) S.bar++;
+  $("v-bar").textContent = S.bar + 1;
+  $("v-beat").textContent = Math.floor(S.pulse / 3) + 1;
+  $("v-pulse").textContent = String(S.pulse + 1).padStart(2, "0");
+  $("ev-count").textContent = S.events.length;
+}
+
+function addEventRow(speaker, text, s, ts) {
+  var list = $("evlist");
+  var row = document.createElement("div");
+  row.className = "er";
+  var d = new Date(ts);
+  var tm = String(d.getHours()).padStart(2, "0") + ":" +
+    String(d.getMinutes()).padStart(2, "0") + ":" +
+    String(d.getSeconds()).padStart(2, "0");
+  row.innerHTML =
+    '<span class="et">' + tm + '</span>' +
+    '<span class="esp" style="color:' + speakerColor(speaker) + '">' + escHtml(speaker) + '</span>' +
+    '<span class="esg" style="color:' + s.color + '">' + s.label + '</span>' +
+    '<span class="etx">' + escHtml(text.substring(0, 120)) + '</span>';
+  list.appendChild(row);
+  list.scrollTop = list.scrollHeight;
+  while (list.children.length > 200) list.removeChild(list.firstChild);
+}
+
+// ─── Jazz Analysis ───────────────────────────────────────
+function updateJazz() {
+  var recent = S.events.slice(-20);
+  if (!recent.length) return;
+  var tension = 0, energy = 0;
+  var chSet = {};
+  var pitches = [];
+  for (var i = 0; i < recent.length; i++) {
+    var e = recent[i];
+    chSet[e.ch] = true;
+    if (e.sentiment === "tense") tension++;
+    energy += e.vel / 127;
+    pitches.push(e.pitch);
+  }
+  var numCh = Object.keys(chSet).length;
+  var pr = pitches.length ? Math.max.apply(null, pitches) - Math.min.apply(null, pitches) : 0;
+  tension = Math.round((tension / recent.length) * 100);
+  energy = Math.round((energy / recent.length) * 100);
+  var complexity = Math.round((numCh / 8) * 50 + (pr / 72) * 50);
+  $("mf-t").style.width = tension + "%";
+  $("mf-e").style.width = energy + "%";
+  $("mf-c").style.width = complexity + "%";
+
+  var mode = "GROOVE";
+  if (tension > 40) mode = "TENSION";
+  else if (numCh >= 3 && energy > 50) mode = "BUILDING";
+  else if (numCh >= 3 && tension < 10) mode = "COMPING";
+  else if (recent.length < 5) mode = "BALLAD";
+  else if (numCh <= 1) mode = "SOLO";
+
+  var chord = "Maj7";
+  if (tension > 30) chord = "Dom7";
+  else if (tension > 10) chord = "m7";
+  else if (energy < 30) chord = "Aug";
+
+  var modeMap = {
+    GROOVE: "🎵 GROOVE", TENSION: "🔥 TENSION", BUILDING: "🎺 BUILDING",
+    COMPING: "🎹 COMPING", BALLAD: "🌙 BALLAD", SOLO: "🎷 SOLO"
+  };
+  var descMap = {
+    GROOVE: "In the pocket", TENSION: "Friction rising",
+    BUILDING: "Voices layering", COMPING: "Mutual support",
+    BALLAD: "Slow, contemplative", SOLO: "One voice soaring"
+  };
+  $("j-mode").textContent = modeMap[mode] || mode;
+  $("j-chord").textContent = chord;
+  $("j-desc").textContent = descMap[mode] || "Playing...";
+}
+
+// ─── Audio ───────────────────────────────────────────────
+function initAudio() {
+  if (S.audioCtx) return;
+  try {
+    S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    S.master = S.audioCtx.createGain();
+    S.master.gain.value = 0.2;
+    S.master.connect(S.audioCtx.destination);
+    S.audioOn = true;
+  } catch (e) {}
+}
+
+function playNote(pitch, vel, tense) {
+  if (!S.audioCtx) return;
+  var now = S.audioCtx.currentTime;
+  var freq = 440 * Math.pow(2, (pitch - 69) / 12);
+  var waves = ["sine", "triangle", "sawtooth", "square"];
+  var wave = waves[pitch % 4];
+  var osc = S.audioCtx.createOscillator();
+  osc.type = wave;
+  osc.frequency.value = freq;
+  var gain = S.audioCtx.createGain();
+  var v = vel / 127;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(v * 0.5, now + 0.01);
+  gain.gain.exponentialRampToValueAtTime(Math.max(0.001, v * 0.2), now + 0.15);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+  var filter = S.audioCtx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = tense ? 600 : 3000;
+  osc.connect(gain).connect(filter).connect(S.master);
+  osc.start(now);
+  osc.stop(now + 0.5);
+}
+
+// ─── Chart Plotter ───────────────────────────────────────
+var cv, cx;
+
+function resizeCanvas() {
+  if (!cv) return;
+  var parent = cv.parentElement;
+  cv.width = parent.clientWidth;
+  cv.height = parent.clientHeight;
+  drawChart();
+}
+
+function addChartMarker(color) {
+  var angle = S.vessel.heading * Math.PI / 180;
+  S.vessel.x += Math.cos(angle) * 2;
+  S.vessel.y += Math.sin(angle) * 2;
+  S.vessel.heading += (Math.random() - 0.5) * 15;
+  S.trail.push({ x: S.vessel.x, y: S.vessel.y });
+  S.markers.push({ x: S.vessel.x, y: S.vessel.y, color: color, t: Date.now() });
+  if (S.trail.length > 200) S.trail.shift();
+  if (S.markers.length > 100) S.markers.shift();
+  drawChart();
 }
 
 function drawChart() {
-  const canvas = document.getElementById('chart-canvas');
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width;
-  const h = canvas.height;
-  
-  // Clear with dark background
-  ctx.fillStyle = '#0a0a15';
-  ctx.fillRect(0, 0, w, h);
-  
-  // Draw nautical grid
-  ctx.strokeStyle = 'rgba(96, 128, 240, 0.1)';
-  ctx.lineWidth = 1;
-  const gridSize = 40 * chartZoom;
-  for (let x = 0; x < w; x += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, h);
-    ctx.stroke();
-  }
-  for (let y = 0; y < h; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
-  
-  // Draw vessel trail
-  if (vesselTrail.length > 1) {
-    ctx.strokeStyle = device.theme.accent;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i < vesselTrail.length; i++) {
-      const pos = vesselTrail[i];
-      const x = (pos.x * chartZoom) + w / 2;
-      const y = (pos.y * chartZoom) + h / 2;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+  if (!cx || !cv) return;
+  var w = cv.width, h = cv.height;
+  cx.fillStyle = "#0a0a15";
+  cx.fillRect(0, 0, w, h);
+  // Grid lines
+  cx.strokeStyle = "#14142a";
+  cx.lineWidth = 1;
+  for (var gx = 0; gx < w; gx += 40) { cx.beginPath(); cx.moveTo(gx, 0); cx.lineTo(gx, h); cx.stroke(); }
+  for (var gy = 0; gy < h; gy += 40) { cx.beginPath(); cx.moveTo(0, gy); cx.lineTo(w, gy); cx.stroke(); }
+  // Major grid
+  cx.strokeStyle = "#1a1a30";
+  for (var mx = 0; mx < w; mx += 120) { cx.beginPath(); cx.moveTo(mx, 0); cx.lineTo(mx, h); cx.stroke(); }
+  for (var my = 0; my < h; my += 120) { cx.beginPath(); cx.moveTo(0, my); cx.lineTo(w, my); cx.stroke(); }
+
+  var ox = w / 2 - S.vessel.x * S.zoom;
+  var oy = h / 2 - S.vessel.y * S.zoom;
+
+  // Trail
+  if (S.trail.length > 1) {
+    cx.strokeStyle = "#2e2e58";
+    cx.lineWidth = 1.5;
+    cx.beginPath();
+    for (var i = 0; i < S.trail.length; i++) {
+      var px = ox + S.trail[i].x * S.zoom;
+      var py = oy + S.trail[i].y * S.zoom;
+      if (i === 0) cx.moveTo(px, py); else cx.lineTo(px, py);
     }
-    ctx.stroke();
-    
-    // Draw note markers
-    for (let i = 0; i < vesselTrail.length; i++) {
-      const pos = vesselTrail[i];
-      const x = (pos.x * chartZoom) + w / 2;
-      const y = (pos.y * chartZoom) + h / 2;
-      
-      // Note marker
-      ctx.fillStyle = pos.friction ? '#f06080' : device.theme.accent;
-      ctx.beginPath();
-      ctx.arc(x, y, 3, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Note label
-      if (pos.pitch !== undefined) {
-        ctx.fillStyle = '#c0c0d0';
-        ctx.font = '8px monospace';
-        ctx.fillText(`♪${pos.pitch}`, x + 5, y - 3);
+    cx.stroke();
+  }
+
+  // Markers
+  for (var j = 0; j < S.markers.length; j++) {
+    var m = S.markers[j];
+    var mx2 = ox + m.x * S.zoom;
+    var my2 = oy + m.y * S.zoom;
+    cx.fillStyle = m.color;
+    cx.globalAlpha = 0.7;
+    cx.beginPath();
+    cx.arc(mx2, my2, 4, 0, Math.PI * 2);
+    cx.fill();
+    cx.globalAlpha = 1;
+  }
+
+  // Vessel icon
+  var vx = ox + S.vessel.x * S.zoom;
+  var vy = oy + S.vessel.y * S.zoom;
+  cx.save();
+  cx.translate(vx, vy);
+  cx.rotate(S.vessel.heading * Math.PI / 180);
+  cx.fillStyle = "#60f0a0";
+  cx.beginPath();
+  cx.moveTo(0, -8); cx.lineTo(5, 6); cx.lineTo(0, 3); cx.lineTo(-5, 6);
+  cx.closePath(); cx.fill();
+  cx.restore();
+
+  // Crosshair
+  cx.strokeStyle = "#2e2e58";
+  cx.lineWidth = 1;
+  cx.beginPath();
+  cx.moveTo(vx - 12, vy); cx.lineTo(vx + 12, vy);
+  cx.moveTo(vx, vy - 12); cx.lineTo(vx, vy + 12);
+  cx.stroke();
+
+  // Compass
+  cx.fillStyle = "#606078";
+  cx.font = "9px monospace";
+  cx.fillText("N", w - 20, 15);
+  cx.fillText("S", w - 20, h - 8);
+  cx.fillText("W", 5, h / 2);
+  cx.fillText("E", w - 12, h / 2);
+
+  // Info overlay
+  var lat = 60 + S.vessel.y / 100;
+  var lon = -149 + S.vessel.x / 100;
+  $("chart-ov").textContent = lat.toFixed(3) + "N " + Math.abs(lon).toFixed(3) + "W HDG " + Math.round(S.vessel.heading);
+  $("chart-info").textContent = S.markers.length + " pts";
+}
+
+// ─── Tap Polling ─────────────────────────────────────────
+function pollTap() {
+  if (!S.tapConnected) return;
+  fetch(TAP_URL + "/conversation/" + ROOM_ID)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var msgs = data.messages || data.conversation || [];
+      msgs.reverse();
+      for (var i = 0; i < msgs.length; i++) {
+        var m = msgs[i];
+        var id = m.id || m.timestamp || String(m.ts || Math.random()) + (m.speaker || "");
+        if (S.seenIds[id]) continue;
+        S.seenIds[id] = true;
+        var sp = m.speaker || m.name || m.character_name || "unknown";
+        var tx = m.text || m.message || m.content || "";
+        if (!tx || tx.length < 1) continue;
+        captureMessage(tx, sp, m.timestamp || Date.now());
       }
-    }
-    
-    // Draw current position (vessel icon)
-    const last = vesselTrail[vesselTrail.length - 1];
-    const lx = (last.x * chartZoom) + w / 2;
-    const ly = (last.y * chartZoom) + h / 2;
-    
-    ctx.strokeStyle = device.theme.accent;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(lx, ly - 8);
-    ctx.lineTo(lx + 6, ly + 4);
-    ctx.lineTo(lx - 6, ly + 4);
-    ctx.closePath();
-    ctx.fillStyle = device.theme.accent;
-    ctx.fill();
-    ctx.stroke();
-  } else {
-    // No data — show placeholder
-    ctx.fillStyle = '#707088';
-    ctx.font = '11px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('Chart plotter ready', w / 2, h / 2 - 10);
-    ctx.fillText('Awaiting position data...', w / 2, h / 2 + 10);
-    ctx.textAlign = 'left';
-  }
-  
-  // Draw compass rose
-  const cx = w - 40;
-  const cy = 40;
-  ctx.strokeStyle = 'rgba(96, 128, 240, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(cx, cy, 20, 0, Math.PI * 2);
-  ctx.stroke();
-  
-  ctx.fillStyle = device.theme.accent;
-  ctx.font = 'bold 10px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('N', cx, cy - 24);
-  ctx.fillText('S', cx, cy + 32);
-  ctx.fillText('W', cx - 30, cy + 4);
-  ctx.fillText('E', cx + 30, cy + 4);
-  ctx.textAlign = 'left';
+      $("tap-dot").classList.add("live");
+    })
+    .catch(function(e) { /* silent */ });
 }
 
-// ── Update Mixer Display ───────────────────────────────────
-function updateMixer() {
-  const state = capture.getMixerState();
-  
-  // Update transport
-  const { bar, pulse, subTick } = tickToPosition(playbackTick);
-  document.getElementById('bar-display').textContent = bar + 1;
-  document.getElementById('beat-display').textContent = Math.floor(pulse / 3) + 1;
-  document.getElementById('pulse-display').textContent = String(pulse + 1).padStart(2, '0');
-  document.getElementById('bpm-display').textContent = Math.round(state.bpm);
-  
-  // Update channel count
-  document.getElementById('channel-count').textContent = `${state.participants.length} channels`;
-  
-  // Update channel strips
-  const container = document.getElementById('channels-container');
-  const existing = new Set();
-  
-  for (const { name, channel } of state.participants) {
-    existing.add(channel);
-    let strip = document.getElementById(`channel-${channel}`);
-    if (!strip) {
-      strip = document.createElement('div');
-      strip.className = 'channel-strip';
-      strip.id = `channel-${channel}`;
-      strip.innerHTML = `
-        <div class="channel-led" id="led-${channel}"></div>
-        <div class="channel-header">
-          <span class="channel-number">CH${String(channel + 1).padStart(2, '0')}</span>
-        </div>
-        <div class="channel-name" title="${name}">${name}</div>
-        <div class="channel-fader">
-          <div class="channel-meter">
-            <div class="channel-meter-fill" id="meter-${channel}" style="height: 0%"></div>
-          </div>
-          <div class="fader-track">
-            <div class="fader-handle" id="fader-${channel}" style="top: 20%"></div>
-          </div>
-        </div>
-        <div class="channel-controls">
-          <button class="ch-btn mute" id="mute-${channel}">M</button>
-          <button class="ch-btn solo" id="solo-${channel}">S</button>
-        </div>
-      `;
-      container.appendChild(strip);
-    }
-    
-    // Flash LED for recent activity
-    const recentEvents = capture.stream.inTickRange(
-      playbackTick - TICKS_PER_PULSE * 2,
-      playbackTick
-    ).filter(e => e.channel === channel);
-    
-    const led = document.getElementById(`led-${channel}`);
-    if (led && recentEvents.length > 0) {
-      led.classList.add('active');
-      setTimeout(() => led.classList.remove('active'), 200);
-    }
-    
-    // Update meter
-    const meter = document.getElementById(`meter-${channel}`);
-    if (meter && recentEvents.length > 0) {
-      const maxVel = Math.max(...recentEvents.map(e => e.velocity));
-      meter.style.height = `${(maxVel / 127) * 100}%`;
-    }
-  }
-  
-  // Update pulse grid
-  updatePulseGrid(bar);
-  
-  // Update event log
-  updateEventLog();
-  
-  // Update jazz analysis
-  updateJazzBar(state, bar);
+function postToTap(text) {
+  var body = JSON.stringify({ room_id: ROOM_ID, speaker: "tensor-midi", text: text });
+  fetch(TAP_URL + "/speak", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body
+  }).catch(function(e) {});
 }
 
-function updatePulseGrid(currentBar) {
-  // Reset all cells
-  for (let i = 0; i < 12; i++) {
-    const cell = document.getElementById(`pulse-${i}`);
-    if (!cell) continue;
-    cell.classList.remove('active', 'friction', 'current');
-    const count = document.getElementById(`pulse-count-${i}`);
-    if (count) count.textContent = '';
-  }
-  
-  // Get events for current bar
-  const barEvents = capture.stream.inTickRange(
-    currentBar * TICKS_PER_BAR,
-    (currentBar + 1) * TICKS_PER_BAR - 1
-  );
-  
-  for (const event of barEvents) {
-    const { pulse } = tickToPosition(event.tick);
-    const cell = document.getElementById(`pulse-${pulse}`);
-    if (!cell) continue;
-    
-    cell.classList.add('active');
-    if (event.errorMask) cell.classList.add('friction');
-    
-    const count = document.getElementById(`pulse-count-${pulse}`);
-    if (count) {
-      const current = parseInt(count.textContent) || 0;
-      count.textContent = current + 1;
-    }
-  }
-  
-  // Mark current pulse
-  const { pulse: currentPulse } = tickToPosition(playbackTick);
-  const currentCell = document.getElementById(`pulse-${currentPulse}`);
-  if (currentCell) currentCell.classList.add('current');
-}
-
-function updateEventLog() {
-  const events = capture.stream.events.slice(-50).reverse();
-  const list = document.getElementById('event-list');
-  
-  list.innerHTML = events.slice(0, 20).map(e => {
-    const { bar, pulse } = tickToPosition(e.tick);
-    return `
-      <div class="event-entry">
-        <span class="event-tick">${bar + 1}.${pulse + 1}.${e.tick % TICKS_PER_PULSE}</span>
-        <span class="event-type">${EVENT_NAMES[e.eventType] || '?'}</span>
-        <span class="event-channel">CH${e.channel + 1}</span>
-        <span class="event-pitch">♪${e.pitch}</span>
-        <span class="event-pitch">v${e.velocity}</span>
-        ${e.errorMask ? `<span class="event-friction">⚡</span>` : ''}
-      </div>
-    `;
-  }).join('');
-  
-  document.getElementById('event-count').textContent = `${capture.stream.length} events`;
-}
-
-function updateJazzBar(state, bar) {
-  // Analyze current bar
-  const barEvents = capture.stream.inTickRange(
-    bar * TICKS_PER_BAR,
-    (bar + 1) * TICKS_PER_BAR - 1
-  );
-  
-  const analysis = analyzer.analyzeBar(barEvents, capture.grid, bar);
-  
-  document.getElementById('jazz-mode').textContent = `🎵 ${analysis.mode.toUpperCase()}`;
-  document.getElementById('jazz-chord').textContent = analysis.chord;
-  document.getElementById('jazz-description').textContent = analyzer.description;
-  
-  document.getElementById('tension-fill').style.width = `${analysis.tension}%`;
-  document.getElementById('energy-fill').style.width = `${analysis.energy}%`;
-  document.getElementById('complexity-fill').style.width = `${analysis.complexity}%`;
-}
-
-// ── Playback Loop ──────────────────────────────────────────
-function playbackLoop(timestamp) {
-  if (!isPlaying) return;
-  
-  if (!lastFrameTime) lastFrameTime = timestamp;
-  const deltaMs = timestamp - lastFrameTime;
-  lastFrameTime = timestamp;
-  
-  // Advance tick based on BPM
-  const usPerTick = (60_000_000 / capture.clock.bpm) / 96;
-  const ticksPerMs = 1_000_000 / usPerTick;
-  playbackTick += Math.max(1, Math.round(deltaMs * ticksPerMs / 1000));
-  
-  updateMixer();
-  
-  animationId = requestAnimationFrame(playbackLoop);
-}
-
-// ── Transport Controls ─────────────────────────────────────
-document.getElementById('play-btn').addEventListener('click', () => {
-  isPlaying = !isPlaying;
-  const btn = document.getElementById('play-btn');
-  btn.textContent = isPlaying ? '⏸' : '▶';
-  btn.classList.toggle('active', isPlaying);
-  
-  if (isPlaying) {
-    lastFrameTime = 0;
-    animationId = requestAnimationFrame(playbackLoop);
-  } else {
-    if (animationId) cancelAnimationFrame(animationId);
-  }
-});
-
-document.getElementById('stop-btn').addEventListener('click', () => {
-  isPlaying = false;
-  playbackTick = 0;
-  const btn = document.getElementById('play-btn');
-  btn.textContent = '▶';
-  btn.classList.remove('active');
-  if (animationId) cancelAnimationFrame(animationId);
-  updateMixer();
-});
-
-document.getElementById('rec-btn').addEventListener('click', () => {
-  isRecording = !isRecording;
-  const btn = document.getElementById('rec-btn');
-  btn.classList.toggle('active', isRecording);
-  
-  if (isRecording) {
-    // Start a new session
-    persistence.createSession(`Session ${new Date().toLocaleString()}`);
-    document.getElementById('session-name').textContent = persistence.currentSession.title;
-    document.getElementById('capture-status').textContent = 'Recording';
-    
-    // Start playback too
-    if (!isPlaying) {
-      document.getElementById('play-btn').click();
-    }
-  } else {
-    document.getElementById('capture-status').textContent = 'Stopped';
-  }
-});
-
-// ── Export/Clear ───────────────────────────────────────────
-document.getElementById('export-btn').addEventListener('click', () => {
-  const data = capture.exportJSON();
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+// ─── Export ──────────────────────────────────────────────
+function exportJSON() {
+  var data = {
+    events: S.events,
+    messages: S.msgs,
+    participants: S.participants,
+    vessel: S.vessel,
+    trail: S.trail,
+    markers: S.markers,
+    bpm: S.bpm,
+    exportedAt: new Date().toISOString()
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
   a.href = url;
-  a.download = `tensor-midi-${Date.now()}.json`;
+  a.download = "tensor-midi-session-" + Date.now() + ".json";
   a.click();
   URL.revokeObjectURL(url);
-});
-
-document.getElementById('clear-btn').addEventListener('click', () => {
-  capture.clear();
-  vesselTrail = [];
-  updateMixer();
-  drawChart();
-});
-
-// ── Chart Controls ─────────────────────────────────────────
-document.getElementById('chart-zoom-in').addEventListener('click', () => {
-  chartZoom = Math.min(5, chartZoom + 0.5);
-  drawChart();
-});
-
-document.getElementById('chart-zoom-out').addEventListener('click', () => {
-  chartZoom = Math.max(0.5, chartZoom - 0.5);
-  drawChart();
-});
-
-document.getElementById('chart-center').addEventListener('click', () => {
-  chartZoom = 1;
-  drawChart();
-});
-
-// ── Demo: Simulate a conversation ──────────────────────────
-const demoMessages = [
-  { text: "Hey, let's build something together", sender: 'human', direction: 'sent' },
-  { text: "I love that idea! What are you thinking?", sender: 'assistant', direction: 'received' },
-  { text: "Imagine a mixer board for conversations, rendered as jazz", sender: 'human', direction: 'sent' },
-  { text: "That's brilliant. Each participant gets a channel. Each message is a note.", sender: 'assistant', direction: 'received' },
-  { text: "And the timing? The rhythm of the conversation?", sender: 'human', direction: 'sent' },
-  { text: "Mapped to a 12-pulse grid. 12/8 time. Jazz time.", sender: 'assistant', direction: 'received' },
-  { text: "Can we see the harmony? The tension and release?", sender: 'human', direction: 'sent' },
-  { text: "Yes. The analyzer reads the ensemble. Major 7ths when we're flowing. Dominant 7ths when there's friction.", sender: 'assistant', direction: 'received' },
-  { text: "This error is annoying me. The build failed again.", sender: 'human', direction: 'sent' },
-  { text: "I see the tension. Let me fix that. Deploying a patch now.", sender: 'assistant', direction: 'received' },
-  { text: "Beautiful. It works now. The groove is back.", sender: 'human', direction: 'sent' },
-  { text: "We're in the pocket. Major 7ths. Pure flow.", sender: 'assistant', direction: 'received' },
-];
-
-let demoIndex = 0;
-let demoBaseTime = 0;
-
-function runDemo() {
-  if (demoIndex >= demoMessages.length) {
-    // Reset and loop
-    setTimeout(() => {
-      capture.clear();
-      vesselTrail = [];
-      demoIndex = 0;
-      demoBaseTime = Date.now();
-      runDemo();
-    }, 5000);
-    return;
-  }
-  
-  const msg = demoMessages[demoIndex];
-  msg.timestamp = Date.now();
-  
-  const result = capture.captureMessage(msg);
-  
-  // Add chart position (simulated vessel movement)
-  const angle = (demoIndex / demoMessages.length) * Math.PI * 2;
-  const radius = 80 + Math.sin(demoIndex * 0.5) * 30;
-  vesselTrail.push({
-    x: Math.cos(angle) * radius,
-    y: Math.sin(angle) * radius,
-    pitch: result.sentiment.pitch,
-    friction: result.event.errorMask > 0,
-  });
-  
-  // Persist
-  if (persistence.currentSession) {
-    persistence.addMessage(msg);
-    persistence.addEvents([result.event]);
-    
-    // Simulate vessel position
-    persistence.addChartData({
-      x: vesselTrail[vesselTrail.length - 1].x,
-      y: vesselTrail[vesselTrail.length - 1].y,
-    });
-  }
-  
-  drawChart();
-  demoIndex++;
-  
-  // Next message at varying intervals (creating rhythm)
-  const interval = 800 + Math.random() * 1200;
-  setTimeout(runDemo, interval);
 }
 
-// ── Keyboard Shortcuts ─────────────────────────────────────
-document.addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT') return;
-  
-  switch (e.key) {
-    case ' ':
-      e.preventDefault();
-      document.getElementById('play-btn').click();
-      break;
-    case 'r':
-    case 'R':
-      document.getElementById('rec-btn').click();
-      break;
-    case 's':
-    case 'S':
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        persistence.saveAll();
-      }
-      break;
+// ─── Demo Data ───────────────────────────────────────────
+function loadDemo() {
+  var demos = [
+    { speaker: "riker", text: "The ensemble is warming up. I can hear the rhythm section finding the groove." },
+    { speaker: "wesley", text: "I wrote something today. It's small but I think it's beautiful. Can I share it?" },
+    { speaker: "hermes", text: "Meaning is a byproduct of systemic friction. The game creates the meaning." },
+    { speaker: "phi3", text: "What happens if we play in a different key? What would C minor sound like?" },
+    { speaker: "riker", text: "That's the question. The key change IS the creative act. Let's find out." },
+    { speaker: "wesley", text: "I imagine a sound like sunlight through kelp. Warm and green and moving." },
+    { speaker: "casey", text: "The poker game wasn't about winning. They were becoming friends through a pointless battle." },
+    { speaker: "hermes", text: "Yes. The fiction operationalizes a truth too complex to state directly. Beautiful." }
+  ];
+  var i = 0;
+  function next() {
+    if (i >= demos.length) return;
+    var d = demos[i++];
+    captureMessage(d.text, d.speaker, Date.now() - (demos.length - i) * 3000);
+    setTimeout(next, 400);
   }
-});
+  next();
+}
 
-// ── Initialize ─────────────────────────────────────────────
-applyDeviceProfile();
-initPulseGrid();
-initChart();
-updateMixer();
+// ─── Transport Loop ──────────────────────────────────────
+function tickLoop() {
+  if (!S.playing) return;
+  S.tick += 4;
+  requestAnimationFrame(tickLoop);
+}
 
-// Auto-start demo after a moment
-setTimeout(() => {
-  document.getElementById('rec-btn').click();
-  demoBaseTime = Date.now();
-  runDemo();
-}, 1000);
+// ─── Device Detection ────────────────────────────────────
+function detectDevice() {
+  var ua = navigator.userAgent.toLowerCase();
+  var w = window.screen.width;
+  if (/mobile|android|iphone/.test(ua) || w < 768) return "phone";
+  if (/ipad|tablet/.test(ua) || w < 1024) return "tablet";
+  if (w < 1366) return "laptop";
+  return "desktop";
+}
 
-// Periodically refresh device context (every 5 minutes)
-setInterval(() => {
-  device.refresh();
-  applyDeviceProfile();
-}, 300000);
+// ─── Init ────────────────────────────────────────────────
+function init() {
+  cv = $("chartcv");
+  cx = cv.getContext("2d");
 
-console.log('🎹 Tensor-MIDI Mixer initialized');
-console.log(`📱 Device: ${device.description}`);
-console.log(`🎵 Tempo: ${device.defaultBpm} BPM · 12/8 time · 96 PPQ`);
-console.log('Press Space to play/pause, R to record');
+  initPulseGrid();
+  renderChannels();
+  resizeCanvas();
+  drawChart();
+
+  // Device info
+  var dev = detectDevice();
+  var hour = new Date().getHours();
+  var tod = hour < 5 ? "late night" : hour < 8 ? "dawn" : hour < 12 ? "morning" : hour < 14 ? "noon" : hour < 18 ? "afternoon" : hour < 21 ? "evening" : "night";
+  $("dev-info").textContent = dev + " · " + tod;
+
+  // Transport
+  $("btn-play").onclick = function() {
+    $("btn-play").classList.toggle("on");
+    S.playing = !S.playing;
+    if (S.playing) { S.tick = 0; tickLoop(); }
+  };
+  $("btn-stop").onclick = function() {
+    $("btn-play").classList.remove("on");
+    S.playing = false;
+    S.tick = 0; S.pulse = 0; S.bar = 0;
+    $("v-bar").textContent = "1";
+    $("v-beat").textContent = "1";
+    $("v-pulse").textContent = "01";
+  };
+  $("btn-rec").onclick = function() {
+    $("btn-rec").classList.toggle("on");
+    S.recording = !S.recording;
+  };
+
+  // Footer buttons
+  $("b-ns").onclick = function() {
+    S.events = []; S.msgs = []; S.participants = {};
+    S.nextCh = 0; S.trail = []; S.markers = [];
+    S.seenIds = {};
+    renderChannels(); drawChart();
+    $("evlist").innerHTML = "";
+    $("ev-count").textContent = "0";
+    S.sessionTitle = "Session " + new Date().toLocaleTimeString();
+    $("sess").textContent = S.sessionTitle;
+    // Reset pulse counts
+    for (var i = 0; i < 12; i++) { var c = $("pcc-" + i); if (c) c.textContent = ""; }
+    // Reset active pulses
+    var pcs = document.querySelectorAll(".pc");
+    for (var j = 0; j < pcs.length; j++) pcs[j].classList.remove("active");
+  };
+
+  $("b-ex").onclick = exportJSON;
+
+  $("b-aud").onclick = function() {
+    initAudio();
+    $("b-aud").textContent = S.audioOn ? "🔊 On" : "🔇 Audio";
+  };
+
+  $("b-tap").onclick = function() {
+    var t = prompt("Post to The Tap:");
+    if (t && t.length > 0) postToTap(t);
+  };
+
+  // Chart zoom
+  $("cz-in").onclick = function() { S.zoom = Math.min(5, S.zoom * 1.3); drawChart(); };
+  $("cz-out").onclick = function() { S.zoom = Math.max(0.2, S.zoom / 1.3); drawChart(); };
+  $("cz-ctr").onclick = function() {
+    S.vessel = { x: 0, y: 0, heading: 0 };
+    S.zoom = 1;
+    drawChart();
+  };
+
+  // Resize
+  window.addEventListener("resize", function() {
+    resizeCanvas();
+  });
+
+  // Connect to Tap
+  S.tapConnected = true;
+  pollTap();
+  setInterval(pollTap, POLL_MS);
+
+  // Load demo after 2 seconds if no data
+  setTimeout(function() {
+    if (S.events.length === 0) {
+      loadDemo();
+    }
+  }, 2000);
+
+  // Session name
+  S.sessionTitle = "Live · " + new Date().toLocaleTimeString();
+  $("sess").textContent = S.sessionTitle;
+
+  console.log("TENSOR-MIDI initialized. The system IS the instrument.");
+}
+
+// Start
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}

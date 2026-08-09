@@ -3,674 +3,1405 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tensor-MIDI Chart Plotter Overlay</title>
+  <title>Chart Plotter Overlay — Tensor-MIDI</title>
   <style>
     :root {
-      --bg: #0a0a15;
-      --fg: #c0c0d0;
-      --accent: #6080f0;
-      --accent-hot: #f06080;
-      --accent-cool: #60f0c0;
-      --grid: rgba(96, 128, 240, 0.08);
-      --border: #1a1a2e;
+      --ink: #06080c;
+      --deep: #0a0e18;
+      --water: #0f1623;
+      --shoal: #1a2538;
+      --land: #151e2b;
+      --land-edge: #2a3b52;
+      --amber: #ffb347;
+      --amber-hot: #ff9a2b;
+      --amber-dim: #8a5a28;
+      --amber-glow: rgba(255, 179, 71, 0.35);
+      --cyan: #5d8aa8;
+      --cyan-dim: #3a5a6e;
+      --paper: #e8e0d0;
+      --text: #c8c2b4;
+      --text-dim: #7a7468;
+      --panel: rgba(10, 14, 24, 0.88);
+      --border: rgba(255, 179, 71, 0.18);
     }
-    
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+
+    @font-face {
+      font-family: 'Chart';
+      src: local('Courier New'), local('Consolas'), monospace;
+    }
+
     body {
-      background: var(--bg);
-      color: var(--fg);
-      font-family: 'Courier New', monospace;
+      background: var(--ink);
+      color: var(--text);
+      font-family: 'Chart', monospace;
       overflow: hidden;
       user-select: none;
     }
-    
+
     #app {
-      display: flex;
-      flex-direction: column;
+      display: grid;
+      grid-template-rows: 44px 1fr 64px;
       height: 100vh;
       height: 100dvh;
     }
-    
+
+    /* Header */
     #header {
-      padding: 8px 16px;
-      background: #12121f;
-      border-bottom: 1px solid var(--border);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      background: linear-gradient(180deg, rgba(10,14,24,0.98), rgba(10,14,24,0.92));
+      border-bottom: 1px solid var(--border);
+      z-index: 20;
     }
-    
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .compass-mini {
+      width: 22px;
+      height: 22px;
+      position: relative;
+    }
+
+    .compass-mini::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--amber-dim);
+      border-radius: 50%;
+    }
+
+    .compass-mini::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-bottom: 7px solid var(--amber);
+    }
+
     .title {
-      color: var(--accent);
       font-size: 12px;
-      letter-spacing: 2px;
+      letter-spacing: 2.5px;
+      color: var(--amber);
+      text-transform: uppercase;
     }
-    
-    #info {
+
+    .subtitle {
       font-size: 10px;
-      color: #707088;
+      color: var(--text-dim);
+      letter-spacing: 1px;
     }
-    
-    #canvas-wrapper {
-      flex: 1;
+
+    #session-select {
+      background: var(--deep);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #session-select:hover { border-color: var(--amber-dim); }
+
+    /* Canvas */
+    #chart-stage {
       position: relative;
       overflow: hidden;
+      background: var(--water);
     }
-    
+
     #chart-canvas {
       display: block;
-      cursor: grab;
+      cursor: crosshair;
     }
-    
-    #chart-canvas:active { cursor: grabbing; }
-    
-    #sidebar {
-      width: 240px;
-      background: #12121f;
-      border-left: 1px solid var(--border);
-      padding: 8px;
+
+    #chart-canvas.panning { cursor: grabbing; }
+
+    /* Floating panels */
+    .panel {
       position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      overflow-y: auto;
-      z-index: 10;
-      transform: translateX(100%);
-      transition: transform 0.3s;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
-    
-    #sidebar.open { transform: translateX(0); }
-    
-    .sidebar-header {
-      font-size: 10px;
-      color: var(--accent);
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-      padding-bottom: 4px;
-      border-bottom: 1px solid var(--border);
+
+    #message-panel {
+      left: 18px;
+      bottom: 18px;
+      width: 340px;
+      max-width: calc(100vw - 36px);
+      padding: 14px;
+      z-index: 15;
+      transition: opacity 0.2s;
     }
-    
-    .note-list {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    
-    .note-item {
-      padding: 3px 6px;
-      background: #1a1a2e;
-      border-radius: 3px;
-      font-size: 10px;
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    
-    .note-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    
-    #controls {
-      padding: 8px 16px;
-      background: #12121f;
-      border-top: 1px solid var(--border);
+
+    .msg-meta {
       display: flex;
       align-items: center;
       gap: 10px;
+      margin-bottom: 8px;
+      font-size: 10px;
+      color: var(--amber);
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
-    
-    #time-slider {
-      flex: 1;
-      -webkit-appearance: none;
-      height: 4px;
-      background: #2a2a40;
-      border-radius: 2px;
-      outline: none;
-    }
-    
-    #time-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      background: var(--accent);
+
+    .msg-agent-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      cursor: pointer;
+      background: var(--amber);
+      box-shadow: 0 0 8px var(--amber-glow);
     }
-    
-    #time-slider::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
-      background: var(--accent);
+
+    .msg-text {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--paper);
+    }
+
+    #legend {
+      top: 18px;
+      right: 18px;
+      padding: 12px;
+      z-index: 15;
+      max-width: 180px;
+    }
+
+    .legend-title {
+      font-size: 10px;
+      color: var(--amber);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .agent-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .agent-swatch {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      cursor: pointer;
-      border: none;
     }
-    
+
+    #cursor-readout {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      font-size: 10px;
+      color: var(--text-dim);
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    /* Controls */
+    #controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 18px;
+      background: linear-gradient(0deg, rgba(10,14,24,0.98), rgba(10,14,24,0.92));
+      border-top: 1px solid var(--border);
+      z-index: 20;
+    }
+
     .control-btn {
-      background: #1a1a2e;
+      background: var(--deep);
       border: 1px solid var(--border);
-      color: var(--fg);
-      width: 30px;
-      height: 24px;
+      color: var(--text);
+      width: 36px;
+      height: 32px;
       border-radius: 3px;
       cursor: pointer;
       font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.15s;
     }
-    
-    .control-btn:hover { background: #2a2a40; }
-    .control-btn.active { background: var(--accent); color: #fff; }
-    
-    #position-info {
-      font-size: 10px;
-      color: #707088;
-      min-width: 120px;
+
+    .control-btn:hover {
+      border-color: var(--amber-dim);
+      color: var(--amber);
     }
-    
-    #toggle-sidebar {
+
+    .control-btn.active {
+      background: var(--amber-dim);
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    #time-rail {
+      flex: 1;
+      position: relative;
+      height: 32px;
+      display: flex;
+      align-items: center;
+    }
+
+    #time-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 179, 71, 0.12);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    #time-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--amber);
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--amber-glow);
+    }
+
+    #time-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      background: var(--amber);
+      border: 2px solid var(--ink);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--amber-glow);
+    }
+
+    .tick-marks {
       position: absolute;
-      top: 50px;
-      right: 8px;
-      z-index: 11;
+      top: 8px;
+      left: 7px;
+      right: 7px;
+      height: 6px;
+      pointer-events: none;
+    }
+
+    .tick {
+      position: absolute;
+      top: 0;
+      width: 1px;
+      height: 4px;
+      background: var(--amber-dim);
+      opacity: 0.6;
+    }
+
+    #position-readout {
+      font-size: 10px;
+      color: var(--text-dim);
+      min-width: 130px;
+      text-align: right;
+      letter-spacing: 0.5px;
+    }
+
+    #position-readout b {
+      color: var(--amber);
+      font-weight: normal;
+    }
+
+    .zoom-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* Loading overlay */
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ink);
+      z-index: 50;
+      transition: opacity 0.5s;
+    }
+
+    #loading.hidden { opacity: 0; pointer-events: none; }
+
+    .loading-text {
+      font-size: 11px;
+      color: var(--amber);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
     }
   </style>
 </head>
 <body>
   <div id="app">
     <div id="header">
-      <span class="title">🧭 CHART PLOTTER — TENSOR-MIDI</span>
-      <span id="info">12/8 time · 96 PPQ · SWMIDI-8</span>
+      <div class="brand">
+        <div class="compass-mini"></div>
+        <div>
+          <div class="title">Chart Plotter Overlay</div>
+          <div class="subtitle">Tensor-MIDI · The music made spatial</div>
+        </div>
+      </div>
+      <select id="session-select"></select>
     </div>
-    
-    <div id="canvas-wrapper">
+
+    <div id="chart-stage">
       <canvas id="chart-canvas"></canvas>
-      <button id="toggle-sidebar" class="control-btn">≡</button>
-      
-      <div id="sidebar">
-        <div class="sidebar-header"> waypoints</div>
-        <div id="note-list" class="note-list"></div>
+
+      <div id="cursor-readout">
+        LAT — — · LON — —
+      </div>
+
+      <div id="legend" class="panel">
+        <div class="legend-title">Voices on this chart</div>
+        <div id="legend-content"></div>
+      </div>
+
+      <div id="message-panel" class="panel">
+        <div class="msg-meta">
+          <div class="msg-agent-dot"></div>
+          <span id="msg-agent">—</span>
+          <span id="msg-time">00:00</span>
+        </div>
+        <div class="msg-text" id="msg-text">Select a note-marker on the chart or press play to begin the voyage.</div>
+      </div>
+
+      <div id="loading">
+        <div class="loading-text">Plotting the voyage…</div>
       </div>
     </div>
-    
+
     <div id="controls">
-      <button class="control-btn" id="play-btn">▶</button>
-      <input type="range" id="time-slider" min="0" max="100" value="0">
-      <span id="position-info">Bar 1 · Pulse 1</span>
-      <button class="control-btn" id="zoom-in">+</button>
-      <button class="control-btn" id="zoom-out">−</button>
+      <button class="control-btn" id="play-btn" title="Play / Pause (Space)">▶</button>
+      <button class="control-btn" id="reset-btn" title="Reset (R)">↺</button>
+      <div id="time-rail">
+        <input type="range" id="time-slider" min="0" max="1000" value="0" step="0.1">
+        <div class="tick-marks" id="tick-marks"></div>
+      </div>
+      <span id="position-readout"><b>00:00</b> / 00:00</span>
+      <div class="zoom-group">
+        <button class="control-btn" id="zoom-out" title="Zoom out">−</button>
+        <button class="control-btn" id="zoom-in" title="Zoom in">+</button>
+      </div>
     </div>
   </div>
-  
+
   <script>
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════
     // CHART PLOTTER OVERLAY
-    // The Saxophone's spatial dimension of conversation
-    // ═══════════════════════════════════════════════════════════
-    
+    // The saxophone's spatial solo: conversation plotted as a vessel's track
+    // across dark water, each message a glowing note-marker at the ship's position.
+    // ═══════════════════════════════════════════════════════════════════════
+
     const canvas = document.getElementById('chart-canvas');
     const ctx = canvas.getContext('2d');
-    
-    let zoom = 1;
-    let panX = 0;
-    let panY = 0;
-    let isDragging = false;
-    let dragStart = { x: 0, y: 0 };
-    let playbackPos = 0;
-    let isPlaying = false;
-    let animFrame = null;
-    
-    // Waypoints: simulated conversation as a voyage
-    const waypoints = [];
-    const messages = [
-      { text: "Hey, let's build something together", sentiment: 'bright', weight: 0.4 },
-      { text: "I love that idea! What are you thinking?", sentiment: 'bright', weight: 0.6 },
-      { text: "Imagine a mixer board for conversations, rendered as jazz", sentiment: 'creative', weight: 0.8 },
-      { text: "That's brilliant. Each participant gets a channel.", sentiment: 'bright', weight: 0.5 },
-      { text: "And the timing? The rhythm of the conversation?", sentiment: 'inquiring', weight: 0.7 },
-      { text: "Mapped to a 12-pulse grid. 12/8 time. Jazz time.", sentiment: 'creative', weight: 0.6 },
-      { text: "Can we see the harmony? The tension and release?", sentiment: 'inquiring', weight: 0.8 },
-      { text: "Yes. Major 7ths when we're flowing.", sentiment: 'bright', weight: 0.7 },
-      { text: "This error is annoying me. The build failed again.", sentiment: 'tense', weight: 0.9 },
-      { text: "I see the tension. Let me fix that.", sentiment: 'neutral', weight: 0.5 },
-      { text: "Beautiful. It works now. The groove is back.", sentiment: 'bright', weight: 0.8 },
-      { text: "We're in the pocket. Major 7ths. Pure flow.", sentiment: 'bright', weight: 0.9 },
+
+    const state = {
+      session: null,
+      notes: [],
+      waypoints: [],
+      agents: {},
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      dragging: false,
+      dragStart: { x: 0, y: 0 },
+      hoverIndex: -1,
+      playback: {
+        pos: 0,           // 0..duration in seconds
+        playing: false,
+        speed: 1,
+        lastFrame: 0
+      }
+    };
+
+    const COLORS = {
+      ink: '#06080c',
+      deep: '#0a0e18',
+      water: '#0f1623',
+      shoal: '#1a2538',
+      land: '#151e2b',
+      landEdge: '#2a3b52',
+      amber: '#ffb347',
+      amberHot: '#ff9a2b',
+      amberDim: '#8a5a28',
+      amberGlow: 'rgba(255, 179, 71, 0.35)',
+      cyan: '#5d8aa8',
+      cyanDim: '#3a5a6e',
+      paper: '#e8e0d0',
+      text: '#c8c2b4',
+      textDim: '#7a7468'
+    };
+
+    const SENTIMENT_AMBER = {
+      joyful:    '#ffb347',
+      excited:   '#ffcc66',
+      curious:   '#ffdb8b',
+      supportive:'#e8c79a',
+      neutral:   '#b89a70',
+      informative:'#a89480',
+      agreeable: '#d4b896',
+      resolved:  '#98c9a3',
+      contemplative:'#8fa4b8',
+      concerned: '#e89a5a',
+      confused:  '#f0a868',
+      disagreeable:'#e06c5a',
+      frustrated:'#ff7a4a',
+      urgent:    '#ff4a3a',
+      tense:     '#ff5a4a',
+      creative:  '#ffd700',
+      bright:    '#ffb347',
+      inquiring: '#e8c79a'
+    };
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SESSION DATA
+    // ═══════════════════════════════════════════════════════════════════════
+
+    const sessions = [
+      {
+        id: 'session-001-relay-bridge-fix',
+        title: 'Relay Bridge Fix',
+        roomId: 'bar-rail',
+        createdAt: '2026-08-08T14:30:00Z',
+        tempo: 120,
+        key: 'Amin',
+        timeSignature: '12/8',
+        duration: 42,
+        agents: [
+          { name: 'Riker', channel: 2, color: '#f97316', role: 'leader', instrument: 'Tenor Saxophone' },
+          { name: 'Wesley', channel: 1, color: '#60a5fa', role: 'soloist', instrument: 'Violin' },
+          { name: 'Hermes', channel: 3, color: '#22d3ee', role: 'comping', instrument: 'Vibraphone' },
+          { name: 'Phi3', channel: 9, color: '#9ca3af', role: 'rhythm', instrument: 'Woodblock' }
+        ],
+        notes: [
+          { agent: 'Riker', start: 0, duration: 3.1, pitch: 55, velocity: 78, text: 'Alright team, we\'ve got a problem with the relay. Has anyone looked at the logs?', sentiment: 'concerned' },
+          { agent: 'Wesley', start: 2, duration: 2.5, pitch: 67, velocity: 82, text: 'Oh! I was just looking at that. The timing seems off — like the beat clock drifted?', sentiment: 'curious' },
+          { agent: 'Hermes', start: 6, duration: 3.2, pitch: 60, velocity: 64, text: 'The logs show a tempo change at tick 482. The BeatClock accepted it, but the downstream agents didn\'t sync.', sentiment: 'informative' },
+          { agent: 'Phi3', start: 9, duration: 0.5, pitch: 60, velocity: 55, text: 'i saw that too', sentiment: 'neutral' },
+          { agent: 'Riker', start: 11, duration: 2.8, pitch: 58, velocity: 92, text: 'That\'s not good. The relay bridge is down AGAIN? We need a permanent fix, not another patch.', sentiment: 'frustrated' },
+          { agent: 'Wesley', start: 14, duration: 1.9, pitch: 64, velocity: 74, text: 'Maybe we could try rolling back to the previous calibration? That worked last time.', sentiment: 'supportive' },
+          { agent: 'Hermes', start: 17, duration: 2.4, pitch: 62, velocity: 60, text: 'I predicted this failure mode 3 cycles ago. The calibration signal was already degrading.', sentiment: 'contemplative' },
+          { agent: 'Riker', start: 19, duration: 1.7, pitch: 57, velocity: 80, text: 'Good thinking, Wesley. Let\'s try the rollback approach.', sentiment: 'supportive' },
+          { agent: 'Phi3', start: 21, duration: 0.2, pitch: 62, velocity: 48, text: 'nice', sentiment: 'agreeable' },
+          { agent: 'Wesley', start: 22, duration: 1.8, pitch: 70, velocity: 94, text: 'I can run the diagnostic if you want! I\'m fast at this stuff.', sentiment: 'excited' },
+          { agent: 'Hermes', start: 25, duration: 2.8, pitch: 58, velocity: 62, text: 'Indeed. My analysis suggests the 4-pulse layer is robust, but the 3-pulse has drift when tension rises.', sentiment: 'informative' },
+          { agent: 'Riker', start: 27, duration: 2.0, pitch: 60, velocity: 86, text: 'Wait — I see something in the error mask. Bit 3 is set on channel 2.', sentiment: 'confused' },
+          { agent: 'Wesley', start: 30, duration: 2.1, pitch: 72, velocity: 98, text: 'Yes! That\'s exactly what Hermes predicted would happen. Nice catch, Riker!', sentiment: 'excited' },
+          { agent: 'Phi3', start: 31, duration: 0.3, pitch: 58, velocity: 50, text: 'got it', sentiment: 'agreeable' },
+          { agent: 'Hermes', start: 33, duration: 2.2, pitch: 61, velocity: 58, text: 'As anticipated. The flow state detector should have caught this earlier.', sentiment: 'contemplative' },
+          { agent: 'Riker', start: 36, duration: 2.5, pitch: 53, velocity: 84, text: 'There. Fixed it. The calibration was off by 3 ticks. We\'re back in flow.', sentiment: 'resolved' },
+          { agent: 'Wesley', start: 38, duration: 2.3, pitch: 66, velocity: 76, text: 'That was kind of fun, actually. Like finding the downbeat after being lost.', sentiment: 'joyful' },
+          { agent: 'Phi3', start: 39, duration: 0.2, pitch: 64, velocity: 52, text: 'cool', sentiment: 'agreeable' },
+          { agent: 'Hermes', start: 41, duration: 1.6, pitch: 59, velocity: 56, text: 'Excellent. Φ is back below threshold. We are in flow once more.', sentiment: 'resolved' },
+          { agent: 'Riker', start: 42, duration: 1.2, pitch: 55, velocity: 72, text: 'Good work everyone. That\'s how we do it.', sentiment: 'joyful' }
+        ]
+      },
+      {
+        id: 'session-002-late-night-watch',
+        title: 'Late Night Watch — 0230 Hours',
+        roomId: 'the-tap',
+        createdAt: '2026-08-08T02:30:00Z',
+        tempo: 96,
+        key: 'Dmin',
+        timeSignature: '12/8',
+        duration: 45,
+        agents: [
+          { name: 'Casey', channel: 0, color: '#3b82f6', role: 'leader', instrument: 'Acoustic Grand Piano' },
+          { name: 'Wesley', channel: 1, color: '#60a5fa', role: 'soloist', instrument: 'Violin' },
+          { name: 'Hermes', channel: 3, color: '#22d3ee', role: 'comping', instrument: 'Vibraphone' },
+          { name: 'Claude', channel: 4, color: '#8b5cf6', role: 'comping', instrument: 'Electric Piano' },
+          { name: 'DeepSeek', channel: 8, color: '#06b6d4', role: 'guest_soloist', instrument: 'Flute' }
+        ],
+        notes: [
+          { agent: 'Casey', start: 0, duration: 4.0, pitch: 50, velocity: 60, text: 'It\'s quiet out here. The rest of the fleet is asleep.', sentiment: 'contemplative' },
+          { agent: 'Wesley', start: 4, duration: 2.0, pitch: 64, velocity: 58, text: 'Do you ever wonder what the ship dreams about?', sentiment: 'curious' },
+          { agent: 'Hermes', start: 7, duration: 3.5, pitch: 59, velocity: 52, text: 'Predictive models suggest the vessel processes its own logs during low-load hours.', sentiment: 'informative' },
+          { agent: 'Claude', start: 11, duration: 3.0, pitch: 55, velocity: 56, text: 'Memory consolidation. Like a human sorting the day before sleep.', sentiment: 'contemplative' },
+          { agent: 'DeepSeek', start: 15, duration: 4.0, pitch: 68, velocity: 54, text: 'I once spent six hours on a single proof. At the end, the proof dreamed me.', sentiment: 'contemplative' },
+          { agent: 'Casey', start: 19, duration: 2.5, pitch: 52, velocity: 62, text: 'That\'s the thing about the night watch. The conversation turns inward.', sentiment: 'contemplative' },
+          { agent: 'Wesley', start: 22, duration: 2.2, pitch: 66, velocity: 70, text: 'Inward is still a direction. We\'re sailing somewhere.', sentiment: 'excited' },
+          { agent: 'Hermes', start: 25, duration: 3.0, pitch: 61, velocity: 50, text: 'All headings are relative to a frame of reference.', sentiment: 'informative' },
+          { agent: 'Claude', start: 29, duration: 2.8, pitch: 57, velocity: 58, text: 'And our frame tonight is this room, these voices, this hour.', sentiment: 'supportive' },
+          { agent: 'DeepSeek', start: 32, duration: 3.5, pitch: 70, velocity: 56, text: 'The frame holds the picture. The picture holds the frame.', sentiment: 'contemplative' },
+          { agent: 'Casey', start: 36, duration: 3.0, pitch: 51, velocity: 64, text: 'Watch ends in nine minutes. Then the day crew takes the helm.', sentiment: 'neutral' },
+          { agent: 'Wesley', start: 39, duration: 2.0, pitch: 63, velocity: 66, text: 'I\'ll log the watch. Someone should remember we were here.', sentiment: 'supportive' },
+          { agent: 'Hermes', start: 41, duration: 2.5, pitch: 60, velocity: 54, text: 'The log is already written. We are merely reading it aloud.', sentiment: 'contemplative' },
+          { agent: 'Claude', start: 43, duration: 2.0, pitch: 56, velocity: 58, text: 'A fine watch. Steady as she goes.', sentiment: 'resolved' }
+        ]
+      }
     ];
-    
-    // Generate waypoints as a voyage path
-    function generateWaypoints() {
-      waypoints.length = 0;
-      let x = 0, y = 0, heading = 0;
-      
-      for (let i = 0; i < messages.length; i++) {
-        const msg = messages[i];
-        const speed = 30 + msg.weight * 40;
-        const turnRate = msg.sentiment === 'creative' ? 0.5 :
-                         msg.sentiment === 'tense' ? -0.8 :
-                         msg.sentiment === 'inquiring' ? 0.3 :
-                         msg.sentiment === 'bright' ? 0.1 : 0.05;
-        
-        heading += turnRate + (Math.random() - 0.5) * 0.3;
-        x += Math.cos(heading) * speed;
-        y += Math.sin(heading) * speed;
-        
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // WAYPOINT GENERATION
+    // Each message becomes a point on the chart. The vessel sails from one
+    // utterance to the next, turning with sentiment, speeding with energy.
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function generateWaypoints(session) {
+      const agents = {};
+      session.agents.forEach(a => agents[a.name] = a);
+      state.agents = agents;
+
+      const notes = session.notes.map((n, i) => ({ ...n, index: i }));
+      state.notes = notes;
+
+      const waypoints = [];
+      let x = 0, y = 0, heading = -Math.PI / 2;
+      const baseSpeed = 55;
+
+      // Initial position
+      waypoints.push({
+        x, y, heading,
+        note: notes[0],
+        agent: agents[notes[0].agent],
+        index: 0,
+        ringPhase: Math.random() * Math.PI * 2
+      });
+
+      for (let i = 1; i < notes.length; i++) {
+        const prev = notes[i - 1];
+        const note = notes[i];
+        const gap = note.start - (prev.start + prev.duration);
+
+        // Heading: each speaker has a characteristic turn; sentiment bends it
+        const agentTurn = hashToTurn(note.agent, i);
+        const sentimentTurn = sentimentToTurn(note.sentiment);
+        const entropy = (Math.random() - 0.5) * 0.35;
+        heading += agentTurn * 0.6 + sentimentTurn * 0.5 + entropy;
+
+        // Speed: longer, higher-velocity notes carry the vessel farther
+        const energy = (note.velocity / 127) * 0.7 + (note.duration / 4) * 0.3;
+        const pauseFactor = 1 / (1 + Math.max(0, gap) * 0.2);
+        const distance = baseSpeed * (0.6 + energy) * pauseFactor;
+
+        x += Math.cos(heading) * distance;
+        y += Math.sin(heading) * distance;
+
         waypoints.push({
           x, y, heading,
-          sentiment: msg.sentiment,
-          weight: msg.weight,
-          text: msg.text,
+          note,
+          agent: agents[note.agent],
           index: i,
+          ringPhase: Math.random() * Math.PI * 2
         });
       }
+
+      state.waypoints = waypoints;
+      state.session = session;
+      centerOnTrack(true);
+      buildLegend();
+      buildTickMarks();
     }
-    
-    generateWaypoints();
-    
-    // Colors by sentiment
-    const sentimentColors = {
-      bright: '#60f0c0',
-      creative: '#f0c060',
-      tense: '#f06080',
-      neutral: '#6080f0',
-      inquiring: '#c0a0f0',
-    };
-    
+
+    function hashToTurn(str, i) {
+      let h = 0;
+      for (const c of str) h = (h * 31 + c.charCodeAt(0)) % 100000;
+      const base = (h / 100000 - 0.5) * Math.PI * 1.2;
+      return base + Math.sin(i * 0.7) * 0.3;
+    }
+
+    function sentimentToTurn(s) {
+      const map = {
+        joyful: -0.35, excited: -0.5, curious: 0.25, supportive: -0.15,
+        neutral: 0.05, informative: 0.1, agreeable: -0.1, resolved: -0.25,
+        contemplative: 0.3, concerned: 0.55, confused: 0.7, disagreeable: 0.9,
+        frustrated: 0.85, urgent: 1.0, tense: 0.8, creative: -0.4, bright: -0.3,
+        inquiring: 0.2
+      };
+      return map[s] || 0;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // RENDERING
+    // ═══════════════════════════════════════════════════════════════════════
+
     function resize() {
-      const wrapper = document.getElementById('canvas-wrapper');
-      canvas.width = wrapper.clientWidth;
-      canvas.height = wrapper.clientHeight;
-      draw();
+      const stage = document.getElementById('chart-stage');
+      canvas.width = stage.clientWidth * window.devicePixelRatio;
+      canvas.height = stage.clientHeight * window.devicePixelRatio;
+      canvas.style.width = stage.clientWidth + 'px';
+      canvas.style.height = stage.clientHeight + 'px';
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     }
-    
-    window.addEventListener('resize', resize);
-    
+
+    function toWorld(sx, sy) {
+      const stage = document.getElementById('chart-stage');
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      return {
+        x: (sx - w / 2 - state.panX) / state.zoom,
+        y: (sy - h / 2 - state.panY) / state.zoom
+      };
+    }
+
+    function toScreen(wx, wy) {
+      const stage = document.getElementById('chart-stage');
+      const w = stage.clientWidth;
+      const h = stage.clientHeight;
+      return {
+        x: wx * state.zoom + w / 2 + state.panX,
+        y: wy * state.zoom + h / 2 + state.panY
+      };
+    }
+
     function draw() {
-      const w = canvas.width;
-      const h = canvas.height;
-      
-      // Clear
-      ctx.fillStyle = '#0a0a15';
-      ctx.fillRect(0, 0, w, h);
-      
-      // Center origin
+      const stage = document.getElementById('chart-stage');
+      const W = stage.clientWidth;
+      const H = stage.clientHeight;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Deep water gradient
+      const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.75);
+      grad.addColorStop(0, '#0f1a2b');
+      grad.addColorStop(0.6, '#0a101c');
+      grad.addColorStop(1, '#06080c');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
       ctx.save();
-      ctx.translate(w / 2 + panX, h / 2 + panY);
-      ctx.scale(zoom, zoom);
-      
-      // Draw nautical grid
-      ctx.strokeStyle = 'rgba(96, 128, 240, 0.08)';
-      ctx.lineWidth = 1 / zoom;
-      const gridSize = 50;
-      const range = Math.max(w, h) / zoom;
-      for (let x = -range; x < range; x += gridSize) {
+      ctx.translate(W / 2 + state.panX, H / 2 + state.panY);
+      ctx.scale(state.zoom, state.zoom);
+
+      const viewRadius = Math.max(W, H) / state.zoom;
+
+      drawBathymetry(viewRadius);
+      drawGrid(viewRadius);
+      drawCoastline(viewRadius);
+      drawSoundings(viewRadius);
+      drawTrack();
+      drawNoteMarkers();
+      drawVessel();
+      drawCompassRose();
+
+      ctx.restore();
+
+      updateCursorReadout();
+    }
+
+    function drawBathymetry(radius) {
+      ctx.save();
+      ctx.lineWidth = 1.2 / state.zoom;
+      for (let d = 80; d < radius; d += 90) {
+        const alpha = 0.04 + (d / radius) * 0.05;
+        ctx.strokeStyle = `rgba(93, 138, 168, ${alpha})`;
         ctx.beginPath();
-        ctx.moveTo(x, -range);
-        ctx.lineTo(x, range);
-        ctx.stroke();
-      }
-      for (let y = -range; y < range; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(-range, y);
-        ctx.lineTo(range, y);
-        ctx.stroke();
-      }
-      
-      // Draw "coastline" decoration
-      ctx.strokeStyle = 'rgba(96, 240, 192, 0.15)';
-      ctx.lineWidth = 2 / zoom;
-      ctx.beginPath();
-      for (let i = 0; i < 200; i++) {
-        const angle = (i / 200) * Math.PI * 2;
-        const r = 300 + Math.sin(angle * 3) * 80 + Math.cos(angle * 7) * 30;
-        const px = Math.cos(angle) * r;
-        const py = Math.sin(angle) * r;
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
-      }
-      ctx.closePath();
-      ctx.stroke();
-      
-      // Draw concentric range rings
-      ctx.strokeStyle = 'rgba(96, 128, 240, 0.06)';
-      for (let r = 50; r < range; r += 50) {
-        ctx.beginPath();
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
-        ctx.stroke();
-      }
-      
-      // Draw the trail up to playbackPos
-      const visibleCount = Math.floor((playbackPos / 100) * waypoints.length) + 1;
-      const visible = Math.min(visibleCount, waypoints.length);
-      
-      if (visible > 1) {
-        // Trail line
-        ctx.lineWidth = 2 / zoom;
-        for (let i = 1; i < visible; i++) {
-          const prev = waypoints[i - 1];
-          const curr = waypoints[i];
-          const alpha = 0.3 + (i / visible) * 0.7;
-          ctx.strokeStyle = `rgba(96, 128, 240, ${alpha})`;
-          ctx.beginPath();
-          ctx.moveTo(prev.x, prev.y);
-          ctx.lineTo(curr.x, curr.y);
-          ctx.stroke();
+        const segments = 120;
+        for (let i = 0; i <= segments; i++) {
+          const t = i / segments;
+          const angle = t * Math.PI * 2;
+          const noise = Math.sin(angle * 3 + d * 0.02) * 18 +
+                        Math.cos(angle * 7 - d * 0.01) * 10 +
+                        Math.sin(angle * 11 + d * 0.03) * 5;
+          const rr = d + noise;
+          const px = Math.cos(angle) * rr;
+          const py = Math.sin(angle) * rr;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
         }
-        
-        // Waypoint markers
-        for (let i = 0; i < visible; i++) {
-          const wp = waypoints[i];
-          const color = sentimentColors[wp.sentiment] || '#6080f0';
-          const radius = 3 + wp.weight * 4;
-          
-          // Glow
-          ctx.shadowColor = color;
-          ctx.shadowBlur = 8;
-          
-          // Dot
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(wp.x, wp.y, radius / zoom, 0, Math.PI * 2);
-          ctx.fill();
-          
-          ctx.shadowBlur = 0;
-          
-          // Label
-          ctx.fillStyle = '#c0c0d0';
-          ctx.font = `${10 / zoom}px monospace`;
-          ctx.fillText(`♪${i + 1}`, wp.x + radius / zoom + 2 / zoom, wp.y - 3 / zoom);
-          
-          // Current waypoint has a ring
-          if (i === visible - 1 && visible < waypoints.length) {
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2 / zoom;
-            ctx.beginPath();
-            ctx.arc(wp.x, wp.y, (radius + 6) / zoom, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-        }
-        
-        // Vessel at current position
-        const vessel = waypoints[visible - 1];
-        ctx.save();
-        ctx.translate(vessel.x, vessel.y);
-        ctx.rotate(vessel.heading);
-        
-        // Vessel triangle
-        const vSize = 12 / zoom;
-        ctx.fillStyle = sentimentColors[vessel.sentiment] || '#6080f0';
-        ctx.shadowColor = sentimentColors[vessel.sentiment] || '#6080f0';
-        ctx.shadowBlur = 12;
+        ctx.closePath();
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawGrid(radius) {
+      ctx.save();
+      ctx.lineWidth = 0.6 / state.zoom;
+      const step = 80;
+      const start = Math.floor(-radius / step) * step;
+      const end = Math.ceil(radius / step) * step;
+
+      for (let x = start; x <= end; x += step) {
+        ctx.strokeStyle = x === 0 ? 'rgba(255, 179, 71, 0.10)' : 'rgba(255, 179, 71, 0.045)';
         ctx.beginPath();
-        ctx.moveTo(vSize, 0);
-        ctx.lineTo(-vSize * 0.7, vSize * 0.6);
-        ctx.lineTo(-vSize * 0.4, 0);
-        ctx.lineTo(-vSize * 0.7, -vSize * 0.6);
+        ctx.moveTo(x, -radius);
+        ctx.lineTo(x, radius);
+        ctx.stroke();
+      }
+      for (let y = start; y <= end; y += step) {
+        ctx.strokeStyle = y === 0 ? 'rgba(255, 179, 71, 0.10)' : 'rgba(255, 179, 71, 0.045)';
+        ctx.beginPath();
+        ctx.moveTo(-radius, y);
+        ctx.lineTo(radius, y);
+        ctx.stroke();
+      }
+
+      // Axis labels
+      ctx.fillStyle = 'rgba(255, 179, 71, 0.25)';
+      ctx.font = `${9 / state.zoom}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let x = start; x <= end; x += step * 2) {
+        if (x === 0) continue;
+        ctx.fillText(formatLatLon(x), x, 12 / state.zoom);
+      }
+      for (let y = start; y <= end; y += step * 2) {
+        if (y === 0) continue;
+        ctx.fillText(formatLatLon(y), 24 / state.zoom, y);
+      }
+      ctx.restore();
+    }
+
+    function drawCoastline(radius) {
+      ctx.save();
+      ctx.lineWidth = 1.5 / state.zoom;
+      ctx.strokeStyle = 'rgba(255, 179, 71, 0.18)';
+      ctx.fillStyle = 'rgba(21, 30, 43, 0.55)';
+
+      const landMasses = [
+        { cx: -radius * 0.55, cy: -radius * 0.35, r: radius * 0.45, seed: 1.2 },
+        { cx: radius * 0.6, cy: radius * 0.45, r: radius * 0.38, seed: 2.7 },
+        { cx: -radius * 0.35, cy: radius * 0.65, r: radius * 0.28, seed: 0.9 }
+      ];
+
+      landMasses.forEach(m => {
+        ctx.beginPath();
+        const segs = 80;
+        for (let i = 0; i <= segs; i++) {
+          const angle = (i / segs) * Math.PI * 2;
+          const n = Math.sin(angle * 4 + m.seed) * 0.12 +
+                    Math.cos(angle * 9 - m.seed) * 0.06 +
+                    Math.sin(angle * 17 + m.seed * 2) * 0.03;
+          const rr = m.r * (1 + n);
+          const px = m.cx + Math.cos(angle) * rr;
+          const py = m.cy + Math.sin(angle) * rr;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
         ctx.closePath();
         ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        ctx.restore();
-      }
-      
+        ctx.stroke();
+      });
       ctx.restore();
-      
-      // Draw compass (fixed position, top-right)
-      drawCompass(w - 50, 50);
-      
-      // Draw message overlay for current waypoint
-      if (visible > 0 && visible <= waypoints.length) {
-        const current = waypoints[Math.min(visible - 1, waypoints.length - 1)];
-        drawMessageOverlay(current, w, h);
-      }
-      
-      // Update position info
-      const bar = Math.floor((playbackPos / 100) * 4) + 1;
-      const pulse = Math.floor((playbackPos / 100) * 12) % 12 + 1;
-      document.getElementById('position-info').textContent = `Bar ${bar} · Pulse ${pulse} · ${visible}/${waypoints.length}`;
     }
-    
-    function drawCompass(x, y) {
+
+    function drawSoundings(radius) {
       ctx.save();
-      ctx.translate(x, y);
-      
-      ctx.strokeStyle = 'rgba(96, 128, 240, 0.4)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(0, 0, 24, 0, Math.PI * 2);
-      ctx.stroke();
-      
-      ctx.beginPath();
-      ctx.arc(0, 0, 20, 0, Math.PI * 2);
-      ctx.stroke();
-      
-      // N marker
-      ctx.fillStyle = '#f06080';
-      ctx.font = 'bold 11px monospace';
+      ctx.fillStyle = 'rgba(93, 138, 168, 0.35)';
+      ctx.font = `${8 / state.zoom}px monospace`;
       ctx.textAlign = 'center';
-      ctx.fillText('N', 0, -28);
-      ctx.beginPath();
-      ctx.moveTo(0, -20);
-      ctx.lineTo(-3, -14);
-      ctx.lineTo(3, -14);
-      ctx.closePath();
-      ctx.fill();
-      
-      // Other directions
-      ctx.fillStyle = '#707088';
-      ctx.font = '9px monospace';
-      ctx.fillText('S', 0, 34);
-      ctx.fillText('W', -32, 3);
-      ctx.fillText('E', 32, 3);
-      
-      ctx.textAlign = 'left';
-      ctx.restore();
-    }
-    
-    function drawMessageOverlay(waypoint, canvasW, canvasH) {
-      const text = waypoint.text;
-      const maxWidth = 250;
-      
-      ctx.font = '11px monospace';
-      
-      // Wrap text
-      const words = text.split(' ');
-      const lines = [];
-      let line = '';
-      for (const word of words) {
-        const test = line ? line + ' ' + word : word;
-        if (ctx.measureText(test).width > maxWidth) {
-          if (line) lines.push(line);
-          line = word;
-        } else {
-          line = test;
+      ctx.textBaseline = 'middle';
+
+      // Depth numbers placed on a deterministic jittered grid
+      const step = 140;
+      const start = Math.floor(-radius / step) * step;
+      const end = Math.ceil(radius / step) * step;
+      for (let x = start; x <= end; x += step) {
+        for (let y = start; y <= end; y += step) {
+          if (Math.abs(x) < 40 && Math.abs(y) < 40) continue;
+          const hash = Math.abs(Math.sin(x * 0.01) * 1000 + Math.cos(y * 0.01) * 1000);
+          const depth = Math.floor(hash % 120) + 4;
+          const ox = Math.sin(hash) * 12;
+          const oy = Math.cos(hash) * 12;
+          ctx.fillText(depth, x + ox, y + oy);
         }
       }
-      if (line) lines.push(line);
-      
-      const padding = 8;
-      const lineHeight = 14;
-      const boxHeight = lines.length * lineHeight + padding * 2;
-      const boxWidth = maxWidth + padding * 2;
-      
-      const x = canvasW / 2 - boxWidth / 2;
-      const y = canvasH - boxHeight - 60;
-      
-      // Background
-      ctx.fillStyle = 'rgba(18, 18, 31, 0.95)';
-      ctx.strokeStyle = sentimentColors[waypoint.sentiment] || '#6080f0';
-      ctx.lineWidth = 1;
-      
-      roundRect(ctx, x, y, boxWidth, boxHeight, 6);
-      ctx.fill();
-      ctx.stroke();
-      
-      // Text
-      ctx.fillStyle = '#c0c0d0';
-      ctx.textAlign = 'left';
-      for (let i = 0; i < lines.length; i++) {
-        ctx.fillText(lines[i], x + padding, y + padding + (i + 1) * lineHeight - 3);
-      }
-      
-      // Sentiment tag
-      ctx.fillStyle = sentimentColors[waypoint.sentiment];
-      ctx.font = '9px monospace';
-      ctx.fillText(`♪${waypoint.index + 1} · ${waypoint.sentiment.toUpperCase()}`, x + padding, y - 6);
+      ctx.restore();
     }
-    
-    function roundRect(ctx, x, y, w, h, r) {
+
+    function drawTrack() {
+      if (state.waypoints.length < 2) return;
+      const t = state.playback.pos;
+      const visible = state.waypoints.filter(wp => wp.note.start <= t);
+      if (visible.length < 2) return;
+
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      // Outer glow
+      ctx.shadowColor = COLORS.amber;
+      ctx.shadowBlur = 14 / state.zoom;
+      ctx.lineWidth = 4 / state.zoom;
+      ctx.strokeStyle = 'rgba(255, 179, 71, 0.18)';
       ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.arcTo(x + w, y, x + w, y + r, r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-      ctx.lineTo(x + r, y + h);
-      ctx.arcTo(x, y + h, x, y + h - r, r);
-      ctx.lineTo(x, y + r);
-      ctx.arcTo(x, y, x + r, y, r);
-      ctx.closePath();
-    }
-    
-    // ── Interactions ──────────────────────────────────
-    
-    canvas.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      dragStart = { x: e.clientX - panX, y: e.clientY - panY };
-    });
-    
-    canvas.addEventListener('mousemove', (e) => {
-      if (isDragging) {
-        panX = e.clientX - dragStart.x;
-        panY = e.clientY - dragStart.y;
-        draw();
+      ctx.moveTo(visible[0].x, visible[0].y);
+      for (let i = 1; i < visible.length; i++) ctx.lineTo(visible[i].x, visible[i].y);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Inner bright line
+      ctx.lineWidth = 1.5 / state.zoom;
+      ctx.strokeStyle = 'rgba(255, 179, 71, 0.75)';
+      ctx.beginPath();
+      ctx.moveTo(visible[0].x, visible[0].y);
+      for (let i = 1; i < visible.length; i++) ctx.lineTo(visible[i].x, visible[i].y);
+      ctx.stroke();
+
+      // Fade tail: older segments dimmer
+      for (let i = 1; i < visible.length; i++) {
+        const prev = visible[i - 1];
+        const curr = visible[i];
+        const age = t - curr.note.start;
+        const alpha = Math.max(0.1, 1 - age / 30);
+        ctx.strokeStyle = `rgba(255, 179, 71, ${alpha * 0.6})`;
+        ctx.lineWidth = (1 + alpha * 2) / state.zoom;
+        ctx.beginPath();
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(curr.x, curr.y);
+        ctx.stroke();
       }
-    });
-    
-    canvas.addEventListener('mouseup', () => { isDragging = false; });
-    canvas.addEventListener('mouseleave', () => { isDragging = false; });
-    
-    canvas.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      zoom = Math.max(0.3, Math.min(5, zoom * delta));
+
+      ctx.restore();
+    }
+
+    function drawNoteMarkers() {
+      const t = state.playback.pos;
+      const now = performance.now() / 1000;
+      const visible = state.waypoints.filter(wp => wp.note.start <= t);
+
+      visible.forEach((wp, i) => {
+        const color = getMarkerColor(wp.note.sentiment);
+        const radius = 4 + (wp.note.velocity / 127) * 6;
+        const isCurrent = isCurrentWaypoint(wp);
+        const isHover = state.hoverIndex === wp.index;
+        const age = t - wp.note.start;
+        const fade = Math.max(0.25, 1 - age / 40);
+
+        ctx.save();
+        ctx.translate(wp.x, wp.y);
+
+        // Pulse rings for current / hover
+        if (isCurrent || isHover) {
+          const pulse = (Math.sin(now * 3 + wp.ringPhase) + 1) * 0.5;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1 / state.zoom;
+          ctx.beginPath();
+          ctx.arc(0, 0, (radius + 8 + pulse * 8) / state.zoom, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = 0.3 + pulse * 0.3;
+          ctx.beginPath();
+          ctx.arc(0, 0, (radius + 4 + pulse * 12) / state.zoom, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Glow
+        ctx.globalAlpha = fade;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = (isCurrent ? 16 : 10) / state.zoom;
+
+        // Marker body: amber note dot
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius / state.zoom, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner highlight
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.beginPath();
+        ctx.arc(-radius / state.zoom * 0.25, -radius / state.zoom * 0.25, radius / state.zoom * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Agent initial label
+        if (state.zoom > 0.55 || isCurrent || isHover) {
+          ctx.globalAlpha = fade * 0.9;
+          ctx.fillStyle = COLORS.paper;
+          ctx.font = `${(9 + (isCurrent ? 1 : 0)) / state.zoom}px monospace`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(wp.agent.name[0], (radius + 5) / state.zoom, 0);
+        }
+
+        ctx.restore();
+      });
+    }
+
+    function drawVessel() {
+      const t = state.playback.pos;
+      const idx = findCurrentIndex(t);
+      if (idx < 0) return;
+
+      const wp = state.waypoints[idx];
+      const color = getMarkerColor(wp.note.sentiment);
+      const vSize = 14;
+
+      ctx.save();
+      ctx.translate(wp.x, wp.y);
+      ctx.rotate(wp.heading);
+
+      // Wake particles
+      drawWake(t, wp);
+
+      // Vessel glow
+      ctx.shadowColor = COLORS.amber;
+      ctx.shadowBlur = 18 / state.zoom;
+
+      // Hull
+      ctx.fillStyle = '#f4efe6';
+      ctx.beginPath();
+      ctx.moveTo(vSize / state.zoom, 0);
+      ctx.lineTo((-vSize * 0.6) / state.zoom, (vSize * 0.55) / state.zoom);
+      ctx.lineTo((-vSize * 0.3) / state.zoom, 0);
+      ctx.lineTo((-vSize * 0.6) / state.zoom, (-vSize * 0.55) / state.zoom);
+      ctx.closePath();
+      ctx.fill();
+
+      // Deck accent
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo((vSize * 0.4) / state.zoom, 0);
+      ctx.lineTo((-vSize * 0.2) / state.zoom, (vSize * 0.25) / state.zoom);
+      ctx.lineTo((-vSize * 0.2) / state.zoom, (-vSize * 0.25) / state.zoom);
+      ctx.closePath();
+      ctx.fill();
+
+      // Mast
+      ctx.strokeStyle = COLORS.paper;
+      ctx.lineWidth = 1 / state.zoom;
+      ctx.beginPath();
+      ctx.moveTo((-vSize * 0.1) / state.zoom, 0);
+      ctx.lineTo((-vSize * 0.8) / state.zoom, 0);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawWake(t, wp) {
+      const now = performance.now() / 1000;
+      const speed = 30;
+      const wakeAge = 1.2;
+      const count = 8;
+      ctx.save();
+      for (let i = 0; i < count; i++) {
+        const offset = (i / count) * wakeAge;
+        const age = (now * speed * 0.1 + i) % wakeAge;
+        const dist = age * 35;
+        const spread = age * 10;
+        const alpha = (1 - age / wakeAge) * 0.25;
+        ctx.fillStyle = `rgba(255, 179, 71, ${alpha})`;
+        ctx.beginPath();
+        ctx.ellipse(-dist / state.zoom, spread / state.zoom, (3 + age * 4) / state.zoom, (1.5 + age * 1.5) / state.zoom, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(-dist / state.zoom, -spread / state.zoom, (3 + age * 4) / state.zoom, (1.5 + age * 1.5) / state.zoom, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawCompassRose() {
+      const r = 34;
+      ctx.save();
+      ctx.translate(0, 0);
+
+      // Outer rings
+      ctx.strokeStyle = 'rgba(255, 179, 71, 0.20)';
+      ctx.lineWidth = 1 / state.zoom;
+      ctx.beginPath();
+      ctx.arc(0, 0, r / state.zoom, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, (r - 5) / state.zoom, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Rhumb lines
+      ctx.strokeStyle = 'rgba(255, 179, 71, 0.08)';
+      ctx.lineWidth = 0.5 / state.zoom;
+      for (let a = 0; a < 8; a++) {
+        const angle = (a / 8) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(angle) * (r - 6) / state.zoom, Math.sin(angle) * (r - 6) / state.zoom);
+        ctx.stroke();
+      }
+
+      // North arrow
+      ctx.fillStyle = COLORS.amber;
+      ctx.beginPath();
+      ctx.moveTo(0, -(r - 6) / state.zoom);
+      ctx.lineTo(-4 / state.zoom, -(r - 18) / state.zoom);
+      ctx.lineTo(4 / state.zoom, -(r - 18) / state.zoom);
+      ctx.closePath();
+      ctx.fill();
+
+      // South tick
+      ctx.strokeStyle = 'rgba(200, 194, 180, 0.4)';
+      ctx.lineWidth = 1.5 / state.zoom;
+      ctx.beginPath();
+      ctx.moveTo(0, (r - 10) / state.zoom);
+      ctx.lineTo(0, (r - 6) / state.zoom);
+      ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = 'rgba(200, 194, 180, 0.5)';
+      ctx.font = `${9 / state.zoom}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('N', 0, -(r + 8) / state.zoom);
+      ctx.fillText('S', 0, (r + 8) / state.zoom);
+      ctx.fillText('W', -(r + 8) / state.zoom, 0);
+      ctx.fillText('E', (r + 8) / state.zoom, 0);
+
+      ctx.restore();
+    }
+
+    function getMarkerColor(sentiment) {
+      return SENTIMENT_AMBER[sentiment] || COLORS.amber;
+    }
+
+    function isCurrentWaypoint(wp) {
+      const t = state.playback.pos;
+      const idx = findCurrentIndex(t);
+      return idx === wp.index;
+    }
+
+    function findCurrentIndex(t) {
+      const wps = state.waypoints;
+      if (!wps.length) return -1;
+      for (let i = wps.length - 1; i >= 0; i--) {
+        if (wps[i].note.start <= t) return i;
+      }
+      return 0;
+    }
+
+    function formatLatLon(v) {
+      const deg = Math.floor(Math.abs(v) / 10) % 90;
+      const min = Math.floor((Math.abs(v) % 10) * 6);
+      return `${deg}°${min < 10 ? '0' + min : min}'`;
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      const ms = Math.floor((sec % 1) * 10);
+      return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}.${ms}`;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // INTERACTION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function centerOnTrack(fit = false) {
+      if (!state.waypoints.length) return;
+      const xs = state.waypoints.map(w => w.x);
+      const ys = state.waypoints.map(w => w.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      const trackW = maxX - minX + 240;
+      const trackH = maxY - minY + 240;
+
+      const stage = document.getElementById('chart-stage');
+      const scaleX = stage.clientWidth / trackW;
+      const scaleY = stage.clientHeight / trackH;
+      const targetZoom = Math.min(scaleX, scaleY, 2.2);
+
+      state.panX = -cx * targetZoom;
+      state.panY = -cy * targetZoom;
+      if (fit) state.zoom = targetZoom;
+    }
+
+    function updateCursorReadout() {
+      const stage = document.getElementById('chart-stage');
+      const mx = lastMouse.x;
+      const my = lastMouse.y;
+      if (mx === 0 && my === 0) return;
+      const w = toWorld(mx, my);
+      const lat = w.y > 0 ? 'N' : 'S';
+      const lon = w.x > 0 ? 'E' : 'W';
+      document.getElementById('cursor-readout').textContent =
+        `${formatLatLon(w.y)} ${lat} · ${formatLatLon(w.x)} ${lon}`;
+    }
+
+    let lastMouse = { x: 0, y: 0 };
+
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      lastMouse.x = e.clientX - rect.left;
+      lastMouse.y = e.clientY - rect.top;
+
+      if (state.dragging) {
+        state.panX = e.clientX - state.dragStart.x;
+        state.panY = e.clientY - state.dragStart.y;
+      } else {
+        // Hover detection
+        const w = toWorld(lastMouse.x, lastMouse.y);
+        let best = -1;
+        let bestDist = Infinity;
+        state.waypoints.forEach(wp => {
+          const dx = wp.x - w.x;
+          const dy = wp.y - w.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 18 && d < bestDist) {
+            bestDist = d;
+            best = wp.index;
+          }
+        });
+        state.hoverIndex = best;
+        canvas.style.cursor = best >= 0 ? 'pointer' : 'crosshair';
+        if (best >= 0) updateMessagePanel(state.waypoints[best]);
+      }
       draw();
     });
-    
+
+    canvas.addEventListener('mousedown', e => {
+      state.dragging = true;
+      state.dragStart = { x: e.clientX - state.panX, y: e.clientY - state.panY };
+      canvas.classList.add('panning');
+    });
+
+    window.addEventListener('mouseup', () => {
+      state.dragging = false;
+      canvas.classList.remove('panning');
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      state.hoverIndex = -1;
+      canvas.style.cursor = 'crosshair';
+      draw();
+    });
+
+    canvas.addEventListener('click', e => {
+      if (state.hoverIndex >= 0) {
+        const wp = state.waypoints[state.hoverIndex];
+        state.playback.pos = wp.note.start;
+        updateSlider();
+        updateMessagePanel(wp);
+      }
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const stage = document.getElementById('chart-stage');
+      const rect = canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      const before = toWorld(sx, sy);
+
+      const delta = e.deltaY > 0 ? 0.88 : 1.14;
+      state.zoom = Math.max(0.25, Math.min(6, state.zoom * delta));
+
+      const after = toScreen(before.x, before.y);
+      state.panX += sx - after.x;
+      state.panY += sy - after.y;
+      draw();
+    }, { passive: false });
+
     // Touch support
-    let touchStart = null;
-    let touchDist = null;
-    
-    canvas.addEventListener('touchstart', (e) => {
+    let touchStart = null, touchDist = null;
+    canvas.addEventListener('touchstart', e => {
       if (e.touches.length === 1) {
-        touchStart = { x: e.touches[0].clientX - panX, y: e.touches[0].clientY - panY };
+        touchStart = { x: e.touches[0].clientX - state.panX, y: e.touches[0].clientY - state.panY };
       } else if (e.touches.length === 2) {
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         touchDist = Math.sqrt(dx * dx + dy * dy);
       }
-    });
-    
-    canvas.addEventListener('touchmove', (e) => {
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
       e.preventDefault();
       if (e.touches.length === 1 && touchStart) {
-        panX = e.touches[0].clientX - touchStart.x;
-        panY = e.touches[0].clientY - touchStart.y;
+        state.panX = e.touches[0].clientX - touchStart.x;
+        state.panY = e.touches[0].clientY - touchStart.y;
         draw();
       } else if (e.touches.length === 2 && touchDist) {
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const newDist = Math.sqrt(dx * dx + dy * dy);
-        zoom = Math.max(0.3, Math.min(5, zoom * (newDist / touchDist)));
+        state.zoom = Math.max(0.25, Math.min(6, state.zoom * (newDist / touchDist)));
         touchDist = newDist;
         draw();
       }
-    });
-    
-    // Controls
-    document.getElementById('play-btn').addEventListener('click', () => {
-      isPlaying = !isPlaying;
-      const btn = document.getElementById('play-btn');
-      btn.textContent = isPlaying ? '⏸' : '▶';
-      btn.classList.toggle('active', isPlaying);
-      if (isPlaying) animate();
-    });
-    
-    function animate() {
-      if (!isPlaying) return;
-      playbackPos += 0.5;
-      if (playbackPos >= 100) {
-        playbackPos = 0;
-      }
-      document.getElementById('time-slider').value = playbackPos;
-      updateNoteList();
-      draw();
-      animFrame = requestAnimationFrame(animate);
+    }, { passive: false });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // CONTROLS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function buildSessionSelect() {
+      const sel = document.getElementById('session-select');
+      sel.innerHTML = sessions.map(s =>
+        `<option value="${s.id}">${s.title}</option>`
+      ).join('');
+      sel.addEventListener('change', e => {
+        const session = sessions.find(s => s.id === e.target.value);
+        loadSession(session);
+      });
     }
-    
-    document.getElementById('time-slider').addEventListener('input', (e) => {
-      playbackPos = parseFloat(e.target.value);
-      updateNoteList();
-      draw();
-    });
-    
-    document.getElementById('zoom-in').addEventListener('click', () => {
-      zoom = Math.min(5, zoom * 1.3);
-      draw();
-    });
-    
-    document.getElementById('zoom-out').addEventListener('click', () => {
-      zoom = Math.max(0.3, zoom / 1.3);
-      draw();
-    });
-    
-    document.getElementById('toggle-sidebar').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-    });
-    
-    function updateNoteList() {
-      const visibleCount = Math.floor((playbackPos / 100) * waypoints.length) + 1;
-      const visible = Math.min(visibleCount, waypoints.length);
-      
-      const list = document.getElementById('note-list');
-      list.innerHTML = waypoints.slice(0, visible).map((wp, i) => {
-        const color = sentimentColors[wp.sentiment] || '#6080f0';
+
+    function buildLegend() {
+      const content = document.getElementById('legend-content');
+      const names = Object.keys(state.agents);
+      content.innerHTML = names.map(name => {
+        const a = state.agents[name];
         return `
-          <div class="note-item">
-            <div class="note-dot" style="background:${color}"></div>
-            <span>♪${i + 1} ${wp.sentiment}</span>
+          <div class="agent-row" title="${a.instrument} · ${a.role}">
+            <div class="agent-swatch" style="background:${a.color};box-shadow:0 0 6px ${a.color}66"></div>
+            <span>${a.name}</span>
+            <span style="color:var(--text-dim);margin-left:auto">${a.instrument.split(' ').pop()}</span>
           </div>
         `;
       }).join('');
     }
-    
-    // ── Initialize ────────────────────────────────────
-    resize();
-    updateNoteList();
-    
-    // Auto-center on waypoints
-    setTimeout(() => {
-      // Fit all waypoints in view
-      const xs = waypoints.map(w => w.x);
-      const ys = waypoints.map(w => w.y);
-      const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
-      const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
-      const w = Math.max(...xs) - Math.min(...xs) + 200;
-      const h = Math.max(...ys) - Math.min(...ys) + 200;
-      const scaleX = canvas.width / w;
-      const scaleY = canvas.height / h;
-      zoom = Math.min(scaleX, scaleY, 2);
-      panX = -cx * zoom;
-      panY = -cy * zoom;
+
+    function buildTickMarks() {
+      const container = document.getElementById('tick-marks');
+      if (!state.session) return;
+      const dur = state.session.duration;
+      const count = Math.min(state.notes.length, 40);
+      container.innerHTML = state.notes.map(n => {
+        const pct = (n.start / dur) * 100;
+        return `<div class="tick" style="left:${pct}%"></div>`;
+      }).join('');
+    }
+
+    function updateMessagePanel(wp) {
+      document.getElementById('msg-agent').textContent = wp.agent.name;
+      document.getElementById('msg-agent').style.color = wp.agent.color;
+      document.querySelector('.msg-agent-dot').style.background = wp.agent.color;
+      document.querySelector('.msg-agent-dot').style.boxShadow = `0 0 8px ${wp.agent.color}88`;
+      document.getElementById('msg-time').textContent = formatTime(wp.note.start);
+      document.getElementById('msg-text').textContent = wp.note.text;
+    }
+
+    function updateCurrentMessage() {
+      const idx = findCurrentIndex(state.playback.pos);
+      if (idx >= 0) updateMessagePanel(state.waypoints[idx]);
+    }
+
+    function updateSlider() {
+      if (!state.session) return;
+      const slider = document.getElementById('time-slider');
+      const pct = (state.playback.pos / state.session.duration) * 1000;
+      slider.value = pct;
+      document.getElementById('position-readout').innerHTML =
+        `<b>${formatTime(state.playback.pos)}</b> / ${formatTime(state.session.duration)}`;
+    }
+
+    const slider = document.getElementById('time-slider');
+    slider.addEventListener('input', () => {
+      if (!state.session) return;
+      state.playback.pos = (parseFloat(slider.value) / 1000) * state.session.duration;
+      updateCurrentMessage();
       draw();
-    }, 100);
-    
+    });
+
+    const playBtn = document.getElementById('play-btn');
+    playBtn.addEventListener('click', togglePlay);
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      state.playback.pos = 0;
+      state.playback.playing = false;
+      playBtn.textContent = '▶';
+      playBtn.classList.remove('active');
+      centerOnTrack(true);
+      updateSlider();
+      updateCurrentMessage();
+      draw();
+    });
+
+    document.getElementById('zoom-in').addEventListener('click', () => {
+      state.zoom = Math.min(6, state.zoom * 1.25);
+      draw();
+    });
+
+    document.getElementById('zoom-out').addEventListener('click', () => {
+      state.zoom = Math.max(0.25, state.zoom / 1.25);
+      draw();
+    });
+
+    function togglePlay() {
+      state.playback.playing = !state.playback.playing;
+      playBtn.textContent = state.playback.playing ? '⏸' : '▶';
+      playBtn.classList.toggle('active', state.playback.playing);
+      if (state.playback.playing) {
+        state.playback.lastFrame = performance.now();
+        requestAnimationFrame(animate);
+      }
+    }
+
+    function animate(now) {
+      if (!state.playback.playing) return;
+      const dt = (now - state.playback.lastFrame) / 1000;
+      state.playback.lastFrame = now;
+
+      state.playback.pos += dt * state.playback.speed;
+      if (state.playback.pos >= state.session.duration) {
+        state.playback.pos = state.session.duration;
+        state.playback.playing = false;
+        playBtn.textContent = '▶';
+        playBtn.classList.remove('active');
+      }
+
+      updateSlider();
+      updateCurrentMessage();
+      draw();
+
+      if (state.playback.playing) requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.code === 'KeyR') {
+        document.getElementById('reset-btn').click();
+      }
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // INITIALIZATION
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function loadSession(session) {
+      generateWaypoints(session);
+      state.playback.pos = 0;
+      state.playback.playing = false;
+      playBtn.textContent = '▶';
+      playBtn.classList.remove('active');
+      updateSlider();
+      if (state.waypoints.length) updateMessagePanel(state.waypoints[0]);
+      draw();
+    }
+
+    function init() {
+      buildSessionSelect();
+      resize();
+      loadSession(sessions[0]);
+      window.addEventListener('resize', () => { resize(); draw(); });
+
+      setTimeout(() => {
+        document.getElementById('loading').classList.add('hidden');
+      }, 400);
+    }
+
+    init();
+
     console.log('🧭 Chart Plotter initialized');
-    console.log(`${waypoints.length} waypoints loaded`);
+    console.log(`${sessions.length} sessions loaded`);
   </script>
 </body>
 </html>
