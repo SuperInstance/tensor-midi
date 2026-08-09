@@ -402,6 +402,14 @@ body {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
+  scroll-behavior: smooth;
+}
+.detail-flash {
+  animation: detail-highlight 0.4s ease-out;
+}
+@keyframes detail-highlight {
+  0% { background: rgba(59,130,246,0.12); }
+  100% { background: transparent; }
 }
 .detail-empty {
   color: var(--text-dim);
@@ -1087,6 +1095,11 @@ function renderDAW() {
 
         if (width > 35) el.textContent = note.text.substring(0, Math.floor(width / 5)) + '…';
 
+        const tooltip = document.createElement('div');
+        tooltip.className = 'note-tooltip';
+        tooltip.innerHTML = `<div class="tt-agent">${note.agent}</div><div class="tt-text">${note.text.length > 140 ? note.text.substring(0, 140) + '…' : note.text}</div>`;
+        el.appendChild(tooltip);
+
         el.dataset.agent = note.agent;
         el.dataset.start = note.start;
 
@@ -1121,6 +1134,11 @@ function selectNote(note, el) {
   const empty = document.getElementById('detail-empty');
   if (empty) empty.style.display = 'none';
 
+  body.classList.remove('detail-flash');
+  void body.offsetWidth;
+  body.classList.add('detail-flash');
+  body.scrollTop = 0;
+
   const noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
   const pitchName = noteNames[note.pitch % 12] + Math.floor(note.pitch / 12 - 1);
 
@@ -1152,11 +1170,14 @@ function selectNote(note, el) {
   `;
 }
 
+const dawRoll = document.getElementById('daw-roll');
+const dawTracks = document.getElementById('daw-tracks');
 dawRoll.onclick = (e) => {
   if (e.target === dawRoll || e.target === dawTracks) {
     document.querySelectorAll('.note-block.selected').forEach(n => n.classList.remove('selected'));
     state.selectedNote = null;
     const body = document.getElementById('detail-body');
+    body.classList.remove('detail-flash');
     body.innerHTML = '<div class="detail-empty">Click any note<br>to see the full<br>message text</div>';
   }
 };
