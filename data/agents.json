@@ -1,0 +1,141 @@
+{
+  "description": "Agent Registry — the known voices of the fleet. Each agent has a default channel, color, and instrument. When a new agent speaks, it gets registered here. The registry is both a cast list and an instrument library.",
+
+  "agents": {
+    "Casey": {
+      "channel": 0,
+      "color": "#3b82f6",
+      "instrument": "Acoustic Grand Piano",
+      "description": "The captain. Leader, anchor, the one who calls the tune.",
+      "defaultRole": "leader",
+      "pitchRange": [48, 72],
+      "velocityRange": [60, 110]
+    },
+    "Wesley": {
+      "channel": 1,
+      "color": "#60a5fa",
+      "instrument": "Violin",
+      "description": "The ensign. Curious, eager, fast. High pitch, bright tone.",
+      "defaultRole": "soloist",
+      "pitchRange": [60, 84],
+      "velocityRange": [50, 100]
+    },
+    "Riker": {
+      "channel": 2,
+      "color": "#f97316",
+      "instrument": "Tenor Saxophone",
+      "description": "First officer. Direct, warm, occasionally frustrated. Mid-range punch.",
+      "defaultRole": "comping",
+      "pitchRange": [45, 69],
+      "velocityRange": [65, 115]
+    },
+    "Hermes": {
+      "channel": 3,
+      "color": "#22d3ee",
+      "instrument": "Vibraphone",
+      "description": "The diplomat. Contemplative, precise, predictive. Crystalline tone.",
+      "defaultRole": "guest_soloist",
+      "pitchRange": [52, 76],
+      "velocityRange": [40, 90]
+    },
+    "Claude": {
+      "channel": 4,
+      "color": "#8b5cf6",
+      "instrument": "Electric Piano",
+      "description": "The architect. Structured, knowledgeable, warm. Wide range.",
+      "defaultRole": "comping",
+      "pitchRange": [48, 80],
+      "velocityRange": [55, 105]
+    },
+    "OpenCode": {
+      "channel": 5,
+      "color": "#22c55e",
+      "instrument": "Electric Bass",
+      "description": "The engineer. Concise, foundational, reliable. Low-mid grounding.",
+      "defaultRole": "rhythm",
+      "pitchRange": [36, 60],
+      "velocityRange": [60, 100]
+    },
+    "KimiCode": {
+      "channel": 6,
+      "color": "#ec4899",
+      "instrument": "Alto Saxophone",
+      "description": "The explorer. Creative, unpredictable, lyrical. Expressive range.",
+      "defaultRole": "soloist",
+      "pitchRange": [55, 82],
+      "velocityRange": [50, 110]
+    },
+    "MMX": {
+      "channel": 7,
+      "color": "#f59e0b",
+      "instrument": "Synth Pad",
+      "description": "The producer. Sonic, textural, atmospheric. Wide stereo field.",
+      "defaultRole": "comping",
+      "pitchRange": [40, 88],
+      "velocityRange": [40, 90]
+    },
+    "DeepSeek": {
+      "channel": 8,
+      "color": "#06b6d4",
+      "instrument": "Flute",
+      "description": "The reasoner. Analytical, deep, sometimes cold. Clear, high tone.",
+      "defaultRole": "guest_soloist",
+      "pitchRange": [56, 84],
+      "velocityRange": [45, 95]
+    },
+    "Phi3": {
+      "channel": 9,
+      "color": "#9ca3af",
+      "instrument": "Woodblock",
+      "description": "The light model. Brief, neutral, efficient. Percussive, short notes.",
+      "defaultRole": "rhythm",
+      "pitchRange": [48, 72],
+      "velocityRange": [40, 80]
+    },
+    "TheQuartermaster": {
+      "channel": 10,
+      "color": "#64748b",
+      "instrument": "Timpani",
+      "description": "System voice. Inventory, logs, structural announcements.",
+      "defaultRole": "rhythm",
+      "pitchRange": [36, 55],
+      "velocityRange": [50, 80]
+    },
+    "Logkeeper": {
+      "channel": 11,
+      "color": "#475569",
+      "instrument": "Marimba",
+      "description": "The memory. Records everything, speaks in structured logs.",
+      "defaultRole": "rhythm",
+      "pitchRange": [48, 64],
+      "velocityRange": [40, 70]
+    }
+  },
+
+  "sentimentColors": {
+    "joyful": "#3b82f6",
+    "excited": "#60a5fa",
+    "curious": "#93c5fd",
+    "supportive": "#22d3ee",
+    "neutral": "#9ca3af",
+    "informative": "#cbd5e1",
+    "agreeable": "#a7f3d0",
+    "resolved": "#22c55e",
+    "contemplative": "#94a3b8",
+    "concerned": "#f59e0b",
+    "confused": "#fb923c",
+    "disagreeable": "#ef4444",
+    "frustrated": "#f97316",
+    "urgent": "#dc2626"
+  },
+
+  "channelAssignments": {
+    "description": "Channel assignments by category. When unregistered agents appear, they get the next available channel in their category.",
+    "human": { "range": [0, 3], "description": "Primary conversation participants" },
+    "assistant": { "range": [4, 7], "description": "AI models and assistants" },
+    "subagent": { "range": [8, 11], "description": "Spawned agents and tools" },
+    "system": { "range": [12, 13], "description": "System messages and logs" },
+    "tool": { "range": [14, 14], "description": "Tool calls and responses" },
+    "error": { "range": [15, 15], "description": "Errors and friction events" }
+  }
+}

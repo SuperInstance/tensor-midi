@@ -1,0 +1,325 @@
+{
+  "title": "Relay Bridge Fix",
+  "roomId": "bar-rail",
+  "tempo": 40,
+  "key": "Cmaj",
+  "timeSignature": "12/8",
+  "startTime": 1786241224474,
+  "duration": 49.25,
+  "trackCount": 4,
+  "noteCount": 16,
+  "tracks": [
+    {
+      "track": "Riker",
+      "channel": 0,
+      "notes": [
+        {
+          "pitch": 73,
+          "velocity": 64,
+          "start": 0,
+          "duration": 1.44,
+          "text": "Alright team, we've got a problem with the relay bridge. Has anyone looked at the timing logs?",
+          "sentiment": "curious",
+          "inflection": {
+            "question": true,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#93c5fd"
+        },
+        {
+          "pitch": 78,
+          "velocity": 88,
+          "start": 9,
+          "duration": 1.23,
+          "text": "That's not good. The relay bridge is down AGAIN? We need a permanent fix!",
+          "sentiment": "excited",
+          "inflection": {
+            "question": true,
+            "exclamation": true,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#60a5fa"
+        },
+        {
+          "pitch": 72,
+          "velocity": 64,
+          "start": 22,
+          "duration": 1.05,
+          "text": "Good thinking, Wesley. Let's try the rollback approach.",
+          "sentiment": "joyful",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#3b82f6"
+        },
+        {
+          "pitch": 54,
+          "velocity": 64,
+          "start": 33,
+          "duration": 1.45,
+          "text": "Wait — I see something in the error mask. Bit 3 is set on channel 2. That's the friction point.",
+          "sentiment": "confused",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#fb923c"
+        },
+        {
+          "pitch": 72,
+          "velocity": 64,
+          "start": 42,
+          "duration": 1.16,
+          "text": "There. Fixed it. The calibration is realigned. We're back in flow.",
+          "sentiment": "resolved",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#22c55e"
+        }
+      ]
+    },
+    {
+      "track": "Wesley",
+      "channel": 1,
+      "notes": [
+        {
+          "pitch": 73,
+          "velocity": 88,
+          "start": 2,
+          "duration": 1.44,
+          "text": "Oh! I was just looking at that. The beat clock seems to have drifted — the calibration is off?",
+          "sentiment": "curious",
+          "inflection": {
+            "question": true,
+            "exclamation": true,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#93c5fd"
+        },
+        {
+          "pitch": 73,
+          "velocity": 96,
+          "start": 13,
+          "duration": 1.59,
+          "text": "Maybe we could try rolling back to the previous calibration? That worked last time! I can run the diagnostic!",
+          "sentiment": "curious",
+          "inflection": {
+            "question": true,
+            "exclamation": true,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#93c5fd"
+        },
+        {
+          "pitch": 60,
+          "velocity": 88,
+          "start": 25,
+          "duration": 1.32,
+          "text": "Running it now! Adjusting tick offset by 3 pulses...",
+          "sentiment": "neutral",
+          "inflection": {
+            "question": false,
+            "exclamation": true,
+            "ellipsis": true,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#9ca3af"
+        },
+        {
+          "pitch": 76,
+          "velocity": 104,
+          "start": 37,
+          "duration": 1.24,
+          "text": "Yes! That's exactly what Hermes predicted would happen! Nice catch, Riker!",
+          "sentiment": "excited",
+          "inflection": {
+            "question": false,
+            "exclamation": true,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#60a5fa"
+        },
+        {
+          "pitch": 77,
+          "velocity": 64,
+          "start": 48,
+          "duration": 1.25,
+          "text": "That was kind of fun, actually. Like finding the downbeat after being lost.",
+          "sentiment": "playful",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#5eead4"
+        }
+      ]
+    },
+    {
+      "track": "Hermes",
+      "channel": 2,
+      "notes": [
+        {
+          "pitch": 60,
+          "velocity": 64,
+          "start": 5,
+          "duration": 2.15,
+          "text": "The logs show a tempo change at tick 482. The downstream agents didn't sync. I predicted this failure three cycles ago. The calibration signal was already degrading.",
+          "sentiment": "neutral",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#9ca3af"
+        },
+        {
+          "pitch": 71,
+          "velocity": 64,
+          "start": 18,
+          "duration": 1.93,
+          "text": "Indeed. My analysis suggests the 4-pulse layer is robust, but the 3-pulse has drift when tension rises. The polyrhythm destabilizes under load.",
+          "sentiment": "curious",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#93c5fd"
+        },
+        {
+          "pitch": 60,
+          "velocity": 64,
+          "start": 29,
+          "duration": 1.1,
+          "text": "Φ is dropping. The flow state detector confirms improvement.",
+          "sentiment": "neutral",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#9ca3af"
+        },
+        {
+          "pitch": 60,
+          "velocity": 64,
+          "start": 45,
+          "duration": 1.13,
+          "text": "Excellent. Φ is back below threshold. We are in flow once more.",
+          "sentiment": "neutral",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": false,
+            "long": false
+          },
+          "color": "#9ca3af"
+        }
+      ]
+    },
+    {
+      "track": "Phi3",
+      "channel": 3,
+      "notes": [
+        {
+          "pitch": 60,
+          "velocity": 49,
+          "start": 11,
+          "duration": 0.64,
+          "text": "i saw that too",
+          "sentiment": "neutral",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": true,
+            "long": false
+          },
+          "color": "#9ca3af"
+        },
+        {
+          "pitch": 72,
+          "velocity": 49,
+          "start": 35,
+          "duration": 0.6,
+          "text": "nice catch",
+          "sentiment": "joyful",
+          "inflection": {
+            "question": false,
+            "exclamation": false,
+            "ellipsis": false,
+            "allCaps": false,
+            "codeBlock": false,
+            "short": true,
+            "long": false
+          },
+          "color": "#3b82f6"
+        }
+      ]
+    }
+  ]
+}

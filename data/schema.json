@@ -1,0 +1,140 @@
+{
+  "$schema": "tensor-midi-session/1.0",
+  "description": "Tensor-MIDI Session Format — a conversation captured as multi-track MIDI, scored for the 12-pulse grid. Each session is one performance, one gig, one recording of the fleet at work. The schema grows like a jazz repertoire: new sessions add new patterns, new agents add new channels, but the grid remains constant.",
+
+  "session": {
+    "id": {
+      "type": "string",
+      "description": "Unique session identifier. Convention: 'session-{sequence}-{slug}' e.g. 'session-001-relay-bridge-fix'"
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable title. Convention: descriptive, like a track name on a setlist."
+    },
+    "roomId": {
+      "type": "string",
+      "description": "The room/channel/context where this conversation occurred. e.g. 'bar-rail', 'engine-room', 'the-tap'"
+    },
+    "createdAt": {
+      "type": "string (ISO 8601)",
+      "description": "Session creation timestamp."
+    },
+    "updatedAt": {
+      "type": "string (ISO 8601)",
+      "description": "Last modification timestamp."
+    },
+    "tempo": {
+      "type": "number",
+      "description": "Beats per minute. Derived from inter-message interval median. Slow = contemplative, fast = heated."
+    },
+    "key": {
+      "type": "string",
+      "description": "Musical key derived from dominant sentiment. Major keys = positive valence, minor = tension/drama."
+    },
+    "timeSignature": {
+      "type": "string",
+      "description": "Time signature. Always 12/8 for the 12-pulse grid. The grid doesn't change."
+    },
+    "duration": {
+      "type": "number",
+      "description": "Total session duration in seconds. From first message to last message end."
+    },
+    "noteCount": {
+      "type": "number",
+      "description": "Total number of MIDI notes (one per message)."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Contextual metadata — where, when, under what conditions this session occurred.",
+      "properties": {
+        "location": "GPS coordinates or place name",
+        "device": "Device type that captured this (laptop, vessel, phone)",
+        "timeOfDay": "dawn | morning | noon | afternoon | evening | night | lateNight",
+        "weather": "Ambient context — literal or metaphorical",
+        "sessionNumber": "Sequence number in the overall corpus"
+      }
+    }
+  },
+
+  "agents": {
+    "type": "array",
+    "description": "Who played in this session. Each agent is a voice, a track, a channel.",
+    "items": {
+      "name": "string — agent display name",
+      "channel": "number 0-15 — MIDI channel assignment",
+      "color": "string — hex color for this agent's notes in the UI",
+      "role": "string — jazz role: leader, soloist, comping, rhythm, guest",
+      "instrument": "string — MIDI program name, the 'sound' of this agent"
+    }
+  },
+
+  "messages": {
+    "type": "array",
+    "description": "The raw conversation. What was actually said. The text that became music.",
+    "items": {
+      "speaker": "string — who said it",
+      "text": "string — the full message text, verbatim",
+      "timestamp": "string (ISO 8601) — when it was said",
+      "offset": "number — seconds from session start, the time position on the timeline"
+    }
+  },
+
+  "notes": {
+    "type": "array",
+    "description": "Each message as a MIDI note. Pitch from sentiment, velocity from emphasis, duration from length. This is the musical performance.",
+    "items": {
+      "agent": "string — the speaker",
+      "channel": "number 0-15 — MIDI channel",
+      "start": "number — note onset in seconds",
+      "duration": "number — note duration in seconds (proportional to message length)",
+      "pitch": "number — MIDI note 0-127 (higher = more questioning, lower = more grounded)",
+      "velocity": "number — 0-127 (higher = more emphatic, louder)",
+      "text": "string — original message text",
+      "sentiment": "string — detected sentiment (joyful, curious, frustrated, resolved, etc.)",
+      "color": "string — hex color derived from sentiment",
+      "inflections": {
+        "questionMarks": "number — ? raises pitch",
+        "exclamationMarks": "number — ! raises velocity",
+        "ellipsisCount": "number — ... extends duration",
+        "capsRatio": "number — ALL CAPS ratio affects velocity"
+      },
+      "pulseSpan": {
+        "startPulse": "number 0-11 — which pulse position the note starts on",
+        "endPulse": "number 0-11 — which pulse position the note ends on",
+        "pulseCount": "number — how many 12-pulse cycles this note spans"
+      }
+    }
+  },
+
+  "analysis": {
+    "type": "object",
+    "description": "Jazz analysis of the conversation as musical form. What kind of performance was this?",
+    "properties": {
+      "form": "blues | AABA | ABAC | through-composed | free — the structural form",
+      "key": "string — confirmed key",
+      "tensionCurve": "array of numbers — per-bar tension (0-1), friction-based",
+      "energyCurve": "array of numbers — per-bar energy (0-1), density-based",
+      "roles": "object mapping agent name to jazz role",
+      "chordProgression": "array of chord symbols — the harmonic movement",
+      "soloists": "array of agent names — who took solos",
+      "trades": "array of {from, to, bar} — trading fours between agents",
+      "climaxes": "array of bar numbers — peak tension moments",
+      "resolutionPoints": "array of bar numbers — where tension released"
+    },
+    "pulseGrid": {
+      "type": "object",
+      "description": "The conversation mapped onto the 12-pulse polyrhythmic grid. ECN on beats 1,4,7,10. DMN on beats 1,5,9. Flow at beat 1.",
+      "properties": {
+        "bars": "array of bar objects, each containing 12 pulse cells with event counts, tension, energy, and active layers"
+      }
+    }
+  },
+
+  "designPrinciples": [
+    "The schema grows organically — new fields appear as new kinds of data need capturing. No migrations, only additions.",
+    "Every value that can be derived is also stored. Redundancy is not a bug — it's like recording a gig in multiple formats (score + audio + video).",
+    "The 12-pulse grid is the atomic unit of time. Not seconds, not ticks — pulses. Everything maps back to the grid.",
+    "Sentiment → pitch is the central transduction. The emotional arc of conversation becomes melody.",
+    "Files are the persistence layer. No database connection strings, no server config. Just JSON in a directory. A session is a file. A file is a memory."
+  ]
+}
