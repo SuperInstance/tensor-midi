@@ -1,0 +1,16 @@
+{
+  "name": "tensor-midi",
+  "version": "1.0.0",
+  "description": "Treats fleet conversations as jazz performances captured in MIDI, viewable as a DAW/mixer-board, and overlaid on a nautical chart.",
+  "main": "capture.js",
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node demo.js",
+    "analyze": "node -e \"const fs=require('fs'); const {JazzAnalyzer}=require('./analysis/jazz-analyzer'); const data=JSON.parse(fs.readFileSync(process.argv[2],'utf8')); const analyzer=new JazzAnalyzer(data); console.log(analyzer.generateLeadSheet());\"",
+    "serve": "node server.js"
+  },
+  "keywords": ["midi", "tensor", "jazz", "conversation", "fleet", "tap", "ecn", "dmn", "polyrhythm"],
+  "author": "Casey DiGennaro",
+  "license": "MIT",
+  "dependencies": {}
+}

@@ -1,0 +1,578 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Tensor-MIDI Mixer Board — Stylesheet
+   The aesthetic: pixel-art DAW meets nautical chart plotter.
+   Dark theme by default, adapts to time of day via device-context.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #0e0e1e;
+  --bg-secondary: #161626;
+  --bg-panel: #1c1c30;
+  --fg: #c0c0d0;
+  --fg-dim: #707088;
+  --accent: #6080f0;
+  --accent-hot: #f06080;
+  --accent-cool: #60f0c0;
+  --border: #2a2a40;
+  --channel-width: 100px;
+  --grid-cols: 12;
+  --font-scale: 1;
+}
+
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Courier New', 'DejaVu Sans Mono', monospace;
+  font-size: calc(13px * var(--font-scale));
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* ── Top Bar ─────────────────────────────────────────────── */
+#topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  min-height: 44px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: bold;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.logo-icon { font-size: 18px; }
+
+#transport {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.transport-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  width: 32px;
+  height: 28px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.transport-btn:hover { background: var(--border); }
+.transport-btn.active { background: var(--accent); color: #fff; }
+
+#rec-btn.active { background: var(--accent-hot); color: #fff; }
+
+.position-display {
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--accent);
+  margin: 0 8px;
+  min-width: 70px;
+  text-align: center;
+}
+
+.tempo-display {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--fg);
+}
+
+.bpm-label { color: var(--fg-dim); font-size: 10px; }
+
+.device-info {
+  font-size: 10px;
+  color: var(--fg-dim);
+  text-align: right;
+}
+
+/* ── Jazz Analysis Bar ───────────────────────────────────── */
+#jazz-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  min-height: 36px;
+}
+
+.jazz-mode {
+  font-weight: bold;
+  color: var(--accent);
+  font-size: 12px;
+  padding: 2px 8px;
+  background: rgba(96, 128, 240, 0.1);
+  border-radius: 3px;
+  border: 1px solid rgba(96, 128, 240, 0.3);
+}
+
+.jazz-chord {
+  color: var(--accent-cool);
+  font-size: 11px;
+  padding: 2px 6px;
+}
+
+.jazz-description {
+  flex: 1;
+  color: var(--fg-dim);
+  font-size: 11px;
+  font-style: italic;
+  min-width: 150px;
+}
+
+.jazz-meters {
+  display: flex;
+  gap: 10px;
+}
+
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.meter-label {
+  font-size: 9px;
+  color: var(--fg-dim);
+  width: 50px;
+  text-align: right;
+}
+
+.meter-bar {
+  width: 60px;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent-hot);
+  transition: width 0.3s;
+}
+
+.meter-fill.energy { background: var(--accent); }
+.meter-fill.complexity { background: var(--accent-cool); }
+
+/* ── Main Area ───────────────────────────────────────────── */
+#main-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+#main-area.layout-compact {
+  flex-direction: column;
+}
+
+#main-area.layout-full > section {
+  flex: 1;
+}
+
+#main-area.layout-chart > #chart-section {
+  flex: 2;
+}
+
+/* ── Section Headers ─────────────────────────────────────── */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.section-header h2 {
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.section-info {
+  font-size: 10px;
+  color: var(--fg-dim);
+}
+
+/* ── Mixer Board ─────────────────────────────────────────── */
+#mixer-board {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  min-width: 200px;
+}
+
+#channels-container {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px;
+  gap: 2px;
+}
+
+.channel-strip {
+  width: var(--channel-width);
+  min-width: 60px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  position: relative;
+}
+
+.channel-strip.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 8px rgba(96, 128, 240, 0.3);
+}
+
+.channel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.channel-number {
+  font-size: 9px;
+  color: var(--fg-dim);
+}
+
+.channel-name {
+  font-size: 10px;
+  font-weight: bold;
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.channel-fader {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 80px;
+}
+
+.fader-track {
+  width: 6px;
+  flex: 1;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+}
+
+.fader-handle {
+  position: absolute;
+  width: 16px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  left: -5px;
+  cursor: grab;
+  transition: top 0.1s;
+}
+
+.fader-handle:active { cursor: grabbing; }
+
+.channel-meter {
+  width: 4px;
+  height: 60px;
+  background: var(--bg-secondary);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.channel-meter-fill {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(to top, #60f0c0, #f0f060, #f06080);
+  transition: height 0.1s;
+}
+
+.channel-controls {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+}
+
+.ch-btn {
+  width: 18px;
+  height: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--fg-dim);
+  font-size: 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ch-btn.mute.active { background: var(--accent-hot); color: #fff; }
+.ch-btn.solo.active { background: var(--accent-cool); color: #000; }
+
+.channel-led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  transition: background 0.1s;
+}
+
+.channel-led.active {
+  background: var(--accent);
+  box-shadow: 0 0 4px var(--accent);
+}
+
+/* ── Pulse Grid ──────────────────────────────────────────── */
+#pulse-section {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+#pulse-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2px;
+  padding: 8px;
+  flex: 1;
+  align-content: center;
+}
+
+.pulse-cell {
+  aspect-ratio: 1;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  position: relative;
+  transition: all 0.15s;
+  min-height: 30px;
+  min-width: 20px;
+}
+
+.pulse-cell.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(96, 128, 240, 0.5);
+}
+
+.pulse-cell.friction {
+  background: var(--accent-hot);
+  border-color: var(--accent-hot);
+  box-shadow: 0 0 12px rgba(240, 96, 128, 0.5);
+}
+
+.pulse-cell.current {
+  border: 2px solid var(--accent-cool);
+  animation: pulse-glow 0.5s ease-out;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 20px var(--accent-cool); }
+  100% { box-shadow: 0 0 0px var(--accent-cool); }
+}
+
+.pulse-number {
+  position: absolute;
+  top: 1px;
+  left: 3px;
+  font-size: 8px;
+  color: var(--fg-dim);
+}
+
+.pulse-count {
+  font-size: 10px;
+  color: var(--fg);
+  font-weight: bold;
+}
+
+.pulse-cell.active .pulse-count { color: #fff; }
+
+/* ── Chart Plotter ───────────────────────────────────────── */
+#chart-section {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+#chart-container {
+  flex: 1;
+  position: relative;
+  background: #0a0a15;
+  overflow: hidden;
+}
+
+#chart-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#chart-controls {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  justify-content: center;
+}
+
+#chart-controls button {
+  width: 28px;
+  height: 22px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+/* ── Event Log ───────────────────────────────────────────── */
+#event-log {
+  height: 120px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+#event-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+}
+
+.event-entry {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(42, 42, 64, 0.3);
+}
+
+.event-tick { color: var(--fg-dim); min-width: 60px; }
+.event-type { color: var(--accent); min-width: 60px; }
+.event-channel { color: var(--accent-cool); min-width: 40px; }
+.event-pitch { color: var(--fg); min-width: 40px; }
+.event-friction { color: var(--accent-hot); }
+
+/* ── Footer ──────────────────────────────────────────────── */
+#footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--fg-dim);
+}
+
+.footer-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.separator { color: var(--border); }
+
+#export-btn, #clear-btn {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+#export-btn:hover, #clear-btn:hover {
+  background: var(--border);
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  #main-area {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  #mixer-board, #pulse-section, #chart-section {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  #channels-container {
+    overflow-x: scroll;
+  }
+  
+  .jazz-description { display: none; }
+  
+  #event-log { height: 80px; }
+}
+
+@media (max-width: 480px) {
+  .logo-text { display: none; }
+  
+  #transport {
+    gap: 3px;
+  }
+  
+  .position-display { font-size: 13px; }
+  .tempo-display { font-size: 11px; }
+  
+  .jazz-meters { gap: 4px; }
+  .meter-bar { width: 40px; }
+  .meter-label { width: 35px; }
+  
+  .channel-strip { min-width: 50px; }
+  
+  #pulse-grid {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+}

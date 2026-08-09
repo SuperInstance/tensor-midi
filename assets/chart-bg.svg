@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <rect width="1920" height="1080" fill="#0d1117"/>
+  <g stroke="#ffb347" fill="none" opacity="0.2">
+    <path d="M 0,200 Q 480,150 960,250 T 1920,200" stroke-width="1"/>
+    <path d="M 0,400 Q 480,350 960,450 T 1920,400" stroke-width="1"/>
+    <path d="M 0,600 Q 480,550 960,650 T 1920,600" stroke-width="1"/>
+    <path d="M 0,800 Q 480,750 960,850 T 1920,800" stroke-width="1"/>
+  </g>
+  <circle cx="480" cy="400" r="4" fill="#ffb347" opacity="0.6"/>
+  <circle cx="960" cy="500" r="4" fill="#ffb347" opacity="0.6"/>
+  <circle cx="1440" cy="350" r="4" fill="#ffb347" opacity="0.6"/>
+  <text x="960" y="540" text-anchor="middle" fill="#ffb347" font-family="monospace" font-size="36" opacity="0.3">NAUTICAL CHART</text>
+</svg>

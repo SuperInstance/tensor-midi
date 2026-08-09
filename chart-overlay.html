@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TENSOR-MIDI CHART OVERLAY — Fleet Navigation</title>
+<style>
+  :root {
+    --bg: #0a1520;
+    --panel: #0f1e30;
+    --panel-hi: #142a42;
+    --border: #1e3a52;
+    --text: #e0f0ff;
+    --text-dim: #5a8aad;
+    --accent: #06b6d4;
+    --water: #0a1a2e;
+    --water-hi: #0d2238;
+    --land: #1a3a28;
+    --land-hi: #2a5a38;
+    --grid: rgba(6, 182, 212, 0.08);
+    --vessel: #ef4444;
+    --consonant: #3b82f6;
+    --dissonant: #f97316;
+    --resolution: #22c55e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .app {
+    display: grid;
+    grid-template-rows: 48px 1fr;
+    height: 100vh;
+  }
+
+  /* Top Bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .topbar h1 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .topbar .meta {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+  .controls {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn {
+    background: var(--panel-hi);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--accent); border-color: var(--accent); }
+  .btn.active { background: var(--accent); border-color: var(--accent); }
+
+  /* Layers Toggle */
+  .layers {
+    display: flex;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--water);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .layer-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: 10px;
+    border-radius: 2px;
+    font-family: inherit;
+  }
+  .layer-btn.active { background: var(--accent); color: #fff; }
+
+  /* Main Chart Area */
+  .chart-area {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    overflow: hidden;
+  }
+
+  /* Canvas Container */
+  .canvas-wrap {
+    position: relative;
+    overflow: hidden;
+    background: var(--water);
+  }
+  #chart-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Compass */
+  .compass {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 80px;
+    height: 80px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    background: rgba(10, 21, 32, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .compass-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  .compass-n {
+    position: absolute;
+    top: 4px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    font-weight: 700;
+    color: #ef4444;
+  }
+  .compass-arrow {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 2px;
+    height: 30px;
+    background: linear-gradient(to bottom, #ef4444 50%, var(--accent) 50%);
+    transform-origin: 50% 100%;
+    transform: translate(-50%, -100%) rotate(0deg);
+    transition: transform 0.3s;
+  }
+  .compass-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Time Slider */
+  .time-slider-container {
+    position: absolute;
+    bottom: 16px; left: 16px; right: 16px;
+    background: rgba(10, 21, 32, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    backdrop-filter: blur(8px);
+  }
+  .time-slider-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+  .time-slider-info .time { color: var(--accent); font-weight: 700; }
+  .time-slider-info .pos { color: var(--text-dim); }
+
+  .slider-track {
+    position: relative;
+    height: 32px;
+    cursor: pointer;
+  }
+  .slider-bar {
+    position: absolute;
+    top: 14px; left: 0; right: 0;
+    height: 4px;
+    background: var(--panel-hi);
+    border-radius: 2px;
+  }
+  .slider-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.1s;
+  }
+  .slider-handle {
+    position: absolute;
+    top: 4px;
+    width: 24px; height: 24px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: grab;
+    transform: translateX(-50%);
+    transition: left 0.1s;
+    z-index: 5;
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+  }
+  .slider-handle:active { cursor: grabbing; }
+
+  .slider-ticks {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .slider-tick {
+    width: 1px;
+    background: var(--border);
+  }
+
+  /* Side Panel */
+  .side-panel {
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .side-panel h3 {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .event-log {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .event-entry {
+    padding: 6px 8px;
+    background: var(--water);
+    border-radius: 4px;
+    border-left: 3px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .event-entry:hover { border-left-color: var(--accent); }
+  .event-entry .ev-agent { font-weight: 700; font-size: 11px; }
+  .event-entry .ev-time { color: var(--text-dim); font-size: 10px; }
+  .event-entry .ev-text {
+    font-size: 10px;
+    margin-top: 4px;
+    color: var(--text);
+    line-height: 1.4;
+    max-height: 40px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Vessel Info */
+  .vessel-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .vessel-stat {
+    background: var(--water);
+    padding: 6px 8px;
+    border-radius: 4px;
+  }
+  .vessel-stat .label { color: var(--text-dim); font-size: 9px; }
+  .vessel-stat .value { color: var(--accent); font-weight: 700; font-size: 13px; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  /* Tooltip */
+  .chart-tooltip {
+    position: fixed;
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 10px;
+    max-width: 350px;
+    z-index: 100;
+    pointer-events: none;
+    font-size: 11px;
+    line-height: 1.5;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.7);
+    display: none;
+  }
+  .chart-tooltip .ct-agent { color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+  .chart-tooltip .ct-meta { color: var(--text-dim); font-size: 10px; margin-bottom: 4px; }
+  .chart-tooltip .ct-text { color: var(--text); white-space: pre-wrap; word-wrap: break-word; }
+
+  /* Empty state */
+  .chart-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    flex-direction: column;
+    color: var(--text-dim);
+    gap: 8px;
+  }
+  .chart-empty h2 { font-size: 16px; color: var(--text); }
+  .chart-empty p { max-width: 350px; text-align: center; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <h1>CHART OVERLAY</h1>
+    <span class="meta" id="meta-info">No conversation loaded</span>
+    <div class="controls">
+      <div class="layers">
+        <button class="layer-btn active" data-layer="track">Track</button>
+        <button class="layer-btn active" data-layer="events">Events</button>
+        <button class="layer-btn" data-layer="heatmap">Heatmap</button>
+        <button class="layer-btn" data-layer="tension">Tension</button>
+      </div>
+      <button class="btn" id="btn-play">▶ Play</button>
+      <button class="btn" id="btn-sample">Load Sample</button>
+      <button class="btn" id="btn-fetch">Fetch from Tap</button>
+    </div>
+  </div>
+
+  <!-- Chart Area -->
+  <div class="chart-area">
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="chart-canvas"></canvas>
+
+      <!-- Compass -->
+      <div class="compass">
+        <div class="compass-inner">
+          <div class="compass-n">N</div>
+          <div class="compass-arrow" id="compass-arrow"></div>
+          <div class="compass-center"></div>
+        </div>
+      </div>
+
+      <!-- Time Slider -->
+      <div class="time-slider-container">
+        <div class="time-slider-info">
+          <span class="time" id="time-display">0:00 / 0:00</span>
+          <span class="pos" id="pos-display">No position data</span>
+        </div>
+        <div class="slider-track" id="slider-track">
+          <div class="slider-bar">
+            <div class="slider-fill" id="slider-fill"></div>
+          </div>
+          <div class="slider-handle" id="slider-handle" style="left:0%"></div>
+          <div class="slider-ticks" id="slider-ticks"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="side-panel">
+      <h3>VESSEL</h3>
+      <div class="vessel-info">
+        <div class="vessel-stat">
+          <div class="label">SOG</div>
+          <div class="value" id="vessel-sog">0.0 kn</div>
+        </div>
+        <div class="vessel-stat">
+          <div class="label">COG</div>
+          <div class="value" id="vessel-cog">000°</div>
+        </div>
+        <div class="vessel-stat">
+          <div class="label">LAT</div>
+          <div class="value" id="vessel-lat">—</div>
+        </div>
+        <div class="vessel-stat">
+          <div class="label">LON</div>
+          <div class="value" id="vessel-lon">—</div>
+        </div>
+      </div>
+
+      <h3>EVENTS</h3>
+      <div class="event-log" id="event-log">
+        <div style="color:var(--text-dim);font-size:10px;padding:8px;">No events logged</div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--consonant)"></div>Consonant</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--dissonant)"></div>Dissonant / Tension</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--resolution)"></div>Resolution</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--vessel)"></div>Vessel Track</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="chart-tooltip" id="chart-tooltip">
+  <div class="ct-agent"></div>
+  <div class="ct-meta"></div>
+  <div class="ct-text"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════
+// TENSOR-MIDI CHART OVERLAY
+// ════════════════════════════════════════════════════════════════════
+
+const TAP_URL = 'https://the-tap.casey-digennaro.workers.dev';
+
+let state = {
+  tensorData: null,
+  vesselTrack: [],
+  events: [],
+  playing: false,
+  playProgress: 0,
+  layers: { track: true, events: true, heatmap: false, tension: false },
+  currentEvent: null,
+};
+
+// ── Canvas Setup ──
+const canvas = document.getElementById('chart-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = document.getElementById('canvas-wrap');
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  render();
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ── Simulated Vessel Track ──
+function generateVesselTrack(duration) {
+  const track = [];
+  let lat = 60.0 + Math.random() * 0.5;
+  let lon = -149.0 + Math.random() * 0.5;
+  let heading = Math.random() * 360;
+  const speed = 5 + Math.random() * 3; // knots
+
+  const steps = Math.max(20, Math.floor(duration));
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * duration;
+    // Wander
+    heading += (Math.random() - 0.5) * 15;
+    const rad = heading * Math.PI / 180;
+    lat += Math.cos(rad) * 0.001 * speed;
+    lon += Math.sin(rad) * 0.001 * speed / Math.cos(lat * Math.PI / 180);
+    track.push({ time: t, lat, lon, heading, speed });
+  }
+  return track;
+}
+
+// ── Projection ──
+function project(lat, lon) {
+  if (!state.vesselTrack.length) return { x: canvas.width / 2, y: canvas.height / 2 };
+
+  const lats = state.vesselTrack.map(p => p.lat);
+  const lons = state.vesselTrack.map(p => p.lon);
+  const minLat = Math.min(...lats) - 0.01;
+  const maxLat = Math.max(...lats) + 0.01;
+  const minLon = Math.min(...lons) - 0.01;
+  const maxLon = Math.max(...lons) + 0.01;
+
+  const pad = 60;
+  const w = canvas.width - pad * 2;
+  const h = canvas.height - pad * 2;
+
+  const x = pad + ((lon - minLon) / (maxLon - minLon || 1)) * w;
+  const y = pad + (1 - (lat - minLat) / (maxLat - minLat || 1)) * h;
+  return { x, y };
+}
+
+function getVesselPositionAtTime(t) {
+  if (!state.vesselTrack.length) return null;
+  if (t <= 0) return state.vesselTrack[0];
+  if (t >= state.vesselTrack[state.vesselTrack.length - 1].time)
+    return state.vesselTrack[state.vesselTrack.length - 1];
+
+  for (let i = 0; i < state.vesselTrack.length - 1; i++) {
+    const a = state.vesselTrack[i];
+    const b = state.vesselTrack[i + 1];
+    if (t >= a.time && t <= b.time) {
+      const f = (t - a.time) / (b.time - a.time || 1);
+      return {
+        lat: a.lat + (b.lat - a.lat) * f,
+        lon: a.lon + (b.lon - a.lon) * f,
+        heading: a.heading + (b.heading - a.heading) * f,
+        speed: a.speed,
+        time: t,
+      };
+    }
+  }
+  return state.vesselTrack[0];
+}
+
+// ── Render ──
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Water background
+  ctx.fillStyle = '#0a1a2e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Grid
+  drawGrid();
+
+  // Land masses (simulated)
+  drawLand();
+
+  if (!state.tensorData) {
+    drawEmptyChart();
+    return;
+  }
+
+  // Vessel track
+  if (state.layers.track) drawVesselTrack();
+
+  // Heatmap
+  if (state.layers.heatmap) drawHeatmap();
+
+  // Tension zones
+  if (state.layers.tension) drawTensionZones();
+
+  // Event markers
+  if (state.layers.events) drawEvents();
+
+  // Current vessel position
+  drawVessel();
+
+  // Resolution points
+  drawResolutionPoints();
+}
+
+function drawGrid() {
+  ctx.strokeStyle = 'rgba(6, 182, 212, 0.06)';
+  ctx.lineWidth = 1;
+
+  const spacing = 40;
+  for (let x = 0; x < canvas.width; x += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+}
+
+function drawLand() {
+  // Simulated coastline
+  ctx.fillStyle = '#0d2238';
+  ctx.strokeStyle = 'rgba(42, 90, 56, 0.4)';
+  ctx.lineWidth = 1;
+
+  // Bottom-left landmass
+  ctx.beginPath();
+  ctx.moveTo(0, canvas.height * 0.7);
+  ctx.bezierCurveTo(
+    canvas.width * 0.15, canvas.height * 0.65,
+    canvas.width * 0.1, canvas.height * 0.85,
+    0, canvas.height
+  );
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Top-right island
+  ctx.beginPath();
+  ctx.moveTo(canvas.width * 0.8, 0);
+  ctx.bezierCurveTo(
+    canvas.width * 0.95, canvas.height * 0.1,
+    canvas.width, canvas.height * 0.05,
+    canvas.width, 0
+  );
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Bottom-right shoal
+  ctx.fillStyle = 'rgba(13, 34, 56, 0.6)';
+  ctx.beginPath();
+  ctx.arc(canvas.width * 0.75, canvas.height * 0.8, 60, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawVesselTrack() {
+  if (state.vesselTrack.length < 2) return;
+
+  // Track line
+  ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  const first = project(state.vesselTrack[0].lat, state.vesselTrack[0].lon);
+  ctx.moveTo(first.x, first.y);
+  for (const point of state.vesselTrack) {
+    const p = project(point.lat, point.lon);
+    ctx.lineTo(p.x, p.y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawHeatmap() {
+  if (!state.tensorData) return;
+  const allNotes = state.tensorData.tracks.flatMap(t => t.notes);
+  for (const note of allNotes) {
+    const pos = getVesselPositionAtTime(note.start);
+    if (!pos) continue;
+    const p = project(pos.lat, pos.lon);
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 30);
+    grad.addColorStop(0, hexToRgba(note.color || '#3b82f6', 0.3));
+    grad.addColorStop(1, hexToRgba(note.color || '#3b82f6', 0));
+    ctx.fillStyle = grad;
+    ctx.fillRect(p.x - 30, p.y - 30, 60, 60);
+  }
+}
+
+function drawTensionZones() {
+  if (!state.tensorData) return;
+  const tensionSentiments = ['frustrated', 'disagreeable', 'confused', 'anxious', 'concerned'];
+  const allNotes = state.tensorData.tracks.flatMap(t => t.notes);
+  const tensionPoints = allNotes.filter(n => tensionSentiments.includes(n.sentiment));
+
+  for (const note of tensionPoints) {
+    const pos = getVesselPositionAtTime(note.start);
+    if (!pos) continue;
+    const p = project(pos.lat, pos.lon);
+    ctx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 20 + note.duration * 5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+function drawEvents() {
+  if (!state.tensorData) return;
+  const currentT = state.playProgress * (state.tensorData.duration || 1);
+
+  for (const track of state.tensorData.tracks) {
+    for (const note of track.notes) {
+      const pos = getVesselPositionAtTime(note.start);
+      if (!pos) continue;
+      const p = project(pos.lat, pos.lon);
+
+      // Only show events up to current playhead
+      if (note.start > currentT) continue;
+
+      const radius = 4 + (note.velocity / 127) * 6;
+      const color = note.color || '#64748b';
+
+      // Glow
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = color;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Connect to vessel track
+      if (Math.abs(note.start - currentT) < 2) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, radius + 4, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+function drawVessel() {
+  const t = state.playProgress * (state.tensorData?.duration || 0);
+  const pos = getVesselPositionAtTime(t);
+  if (!pos) return;
+
+  const p = project(pos.lat, pos.lon);
+  const headingRad = pos.heading * Math.PI / 180;
+
+  // Vessel triangle
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(headingRad);
+  ctx.fillStyle = '#ef4444';
+  ctx.shadowBlur = 12;
+  ctx.shadowColor = '#ef4444';
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(-6, 6);
+  ctx.lineTo(6, 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Heading line
+  ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(0, -30);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Update compass
+  document.getElementById('compass-arrow').style.transform =
+    `translate(-50%, -100%) rotate(${pos.heading}deg)`;
+
+  // Update vessel info
+  document.getElementById('vessel-sog').textContent = `${pos.speed.toFixed(1)} kn`;
+  document.getElementById('vessel-cog').textContent = `${Math.round(pos.heading).toString().padStart(3, '0')}°`;
+  document.getElementById('vessel-lat').textContent = pos.lat.toFixed(4) + '°';
+  document.getElementById('vessel-lon').textContent = pos.lon.toFixed(4) + '°';
+}
+
+function drawResolutionPoints() {
+  if (!state.tensorData) return;
+  const resolutionSentiments = ['resolved', 'grateful', 'conciliatory'];
+  const allNotes = state.tensorData.tracks.flatMap(t => t.notes);
+  const resolutionPoints = allNotes.filter(n => resolutionSentiments.includes(n.sentiment));
+
+  for (const note of resolutionPoints) {
+    const pos = getVesselPositionAtTime(note.start);
+    if (!pos) continue;
+    const p = project(pos.lat, pos.lon);
+
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 15, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Star
+    ctx.fillStyle = '#22c55e';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('★', p.x, p.y - 15);
+  }
+}
+
+function drawEmptyChart() {
+  ctx.fillStyle = 'rgba(90, 138, 173, 0.5)';
+  ctx.font = '14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('No conversation loaded', canvas.width / 2, canvas.height / 2 - 10);
+  ctx.font = '11px monospace';
+  ctx.fillText('Click "Load Sample" to see the chart plotter in action', canvas.width / 2, canvas.height / 2 + 12);
+}
+
+// ── Helpers ──
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// ── Event Log ──
+function updateEventLog() {
+  if (!state.tensorData) return;
+  const container = document.getElementById('event-log');
+  const allNotes = state.tensorData.tracks.flatMap(t => t.notes.map(n => ({ ...n, agent: t.track })));
+  allNotes.sort((a, b) => b.start - a.start);
+
+  const currentT = state.playProgress * state.tensorData.duration;
+  const visible = allNotes.filter(n => n.start <= currentT).slice(0, 20);
+
+  container.innerHTML = visible.map(n => `
+    <div class="event-entry" style="border-left-color:${n.color}" data-start="${n.start}">
+      <div class="ev-agent">${n.agent} <span class="ev-time">${formatTime(n.start)}</span></div>
+      <div class="ev-text">${escapeHtml(n.text.substring(0, 80))}${n.text.length > 80 ? '...' : ''}</div>
+    </div>
+  `).join('');
+
+  // Click to seek
+  container.querySelectorAll('.event-entry').forEach(el => {
+    el.onclick = () => {
+      state.playProgress = parseFloat(el.dataset.start) / state.tensorData.duration;
+      render();
+      updateSlider();
+    };
+  });
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ── Time Slider ──
+function updateSlider() {
+  const pct = state.playProgress * 100;
+  document.getElementById('slider-fill').style.width = `${pct}%`;
+  document.getElementById('slider-handle').style.left = `${pct}%`;
+
+  if (state.tensorData) {
+    const t = state.playProgress * state.tensorData.duration;
+    document.getElementById('time-display').textContent =
+      `${formatTime(t)} / ${formatTime(state.tensorData.duration)}`;
+  }
+}
+
+const sliderTrack = document.getElementById('slider-track');
+sliderTrack.addEventListener('click', (e) => {
+  if (!state.tensorData) return;
+  const rect = sliderTrack.getBoundingClientRect();
+  state.playProgress = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  updateSlider();
+  render();
+  updateEventLog();
+});
+
+// Slider ticks
+function initSliderTicks() {
+  const container = document.getElementById('slider-ticks');
+  container.innerHTML = '';
+  for (let i = 0; i <= 20; i++) {
+    const tick = document.createElement('div');
+    tick.className = 'slider-tick';
+    container.appendChild(tick);
+  }
+}
+
+// ── Play / Pause ──
+let playInterval = null;
+document.getElementById('btn-play').onclick = () => {
+  const btn = document.getElementById('btn-play');
+  if (state.playing) {
+    state.playing = false;
+    clearInterval(playInterval);
+    btn.textContent = '▶ Play';
+  } else {
+    if (!state.tensorData) loadSample();
+    state.playing = true;
+    btn.textContent = '⏸ Pause';
+    playInterval = setInterval(() => {
+      state.playProgress += 0.5 / state.tensorData.duration;
+      if (state.playProgress >= 1) {
+        state.playProgress = 1;
+        state.playing = false;
+        clearInterval(playInterval);
+        btn.textContent = '▶ Play';
+      }
+      updateSlider();
+      render();
+      updateEventLog();
+    }, 500);
+  }
+};
+
+// ── Layer Toggles ──
+document.querySelectorAll('.layer-btn').forEach(btn => {
+  btn.onclick = () => {
+    const layer = btn.dataset.layer;
+    state.layers[layer] = !state.layers[layer];
+    btn.classList.toggle('active', state.layers[layer]);
+    render();
+  };
+});
+
+// ── Load Sample ──
+function loadSample() {
+  const sampleData = generateSampleConversation();
+  state.tensorData = sampleData;
+  state.vesselTrack = generateVesselTrack(sampleData.duration);
+  state.playProgress = 0;
+
+  document.getElementById('meta-info').textContent =
+    `${sampleData.title} | ${sampleData.noteCount} events | ${sampleData.duration}s`;
+
+  // Slider ticks
+  initSliderTicks();
+  updateSlider();
+  updateEventLog();
+  resizeCanvas();
+}
+
+document.getElementById('btn-sample').onclick = loadSample;
+
+// ── Fetch from Tap ──
+document.getElementById('btn-fetch').onclick = async () => {
+  const btn = document.getElementById('btn-fetch');
+  btn.textContent = 'Fetching...';
+  try {
+    const resp = await fetch(`${TAP_URL}/api/room/bar-rail/conversation`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    const messages = (data.messages || data.lines || data || []).map(m => ({
+      speaker: m.speaker || m.agent || m.name || 'unknown',
+      text: m.text || m.message || m.content || '',
+      timestamp: m.timestamp ? new Date(m.timestamp).getTime() : Date.now(),
+    }));
+
+    if (messages.length === 0) {
+      alert('No messages found in bar-rail');
+      return;
+    }
+
+    const tensor = messagesToTensor(messages, 'bar-rail');
+    state.tensorData = tensor;
+    state.vesselTrack = generateVesselTrack(tensor.duration);
+    state.playProgress = 0;
+
+    document.getElementById('meta-info').textContent =
+      `${tensor.title} | ${tensor.noteCount} events | ${tensor.duration}s`;
+
+    initSliderTicks();
+    updateSlider();
+    updateEventLog();
+    resizeCanvas();
+  } catch (err) {
+    alert('Failed to fetch from Tap: ' + err.message);
+  }
+  btn.textContent = 'Fetch from Tap';
+};
+
+// ── Generate Sample Conversation ──
+function generateSampleConversation() {
+  const agents = ['Riker', 'Wesley', 'Hermes', 'Phi3'];
+  const sentiments = ['concerned', 'curious', 'informative', 'neutral', 'frustrated',
+    'excited', 'contemplative', 'confused', 'supportive', 'resolved', 'joyful'];
+  const colors = {
+    concerned: '#f59e0b', curious: '#93c5fd', informative: '#cbd5e1',
+    neutral: '#9ca3af', frustrated: '#f97316', excited: '#60a5fa',
+    contemplative: '#94a3b8', confused: '#fb923c', supportive: '#22d3ee',
+    resolved: '#22c55e', joyful: '#3b82f6',
+  };
+
+  const texts = [
+    "Has anyone seen the depth chart for this area? We're in unfamiliar waters.",
+    "Looking now! The sonar shows a shelf about 2nm ahead.",
+    "The charted depth here averages 40 fathoms. Shoal water begins at 58°14'N.",
+    "shallow water ahead",
+    "That shoal could be a problem if we drift. What's our drift rate?",
+    "Our drift is 0.3kn to the east. We'll clear it by half a mile.",
+    "I don't like cutting it that close. Let's adjust course 10° to port.",
+    "Good call. Adjusting now. New heading 270°.",
+    "wait is that right",
+    "Course confirmed. We'll pass safely north of the shoal.",
+    "Nicely done everyone. That's how we navigate.",
+  ];
+
+  const tracks = [];
+  let t = 0;
+  for (let i = 0; i < texts.length; i++) {
+    const agent = agents[i % agents.length];
+    const sentiment = sentiments[i];
+    if (!tracks.find(tr => tr.track === agent)) {
+      tracks.push({ track: agent, channel: tracks.length, notes: [] });
+    }
+    tracks.find(tr => tr.track === agent).notes.push({
+      pitch: 50 + i * 2,
+      velocity: 50 + Math.random() * 50,
+      start: t,
+      duration: Math.max(0.5, texts[i].length / 50),
+      text: texts[i],
+      sentiment,
+      color: colors[sentiment],
+    });
+    t += 3 + Math.random() * 2;
+  }
+
+  return {
+    title: 'Navigation — Shoal Water Avoidance',
+    roomId: 'bar-rail',
+    tempo: 100,
+    key: 'Dmin',
+    timeSignature: '12/8',
+    duration: t,
+    trackCount: tracks.length,
+    noteCount: tracks.reduce((s, tr) => s + tr.notes.length, 0),
+    tracks,
+  };
+}
+
+// ── Messages → Tensor ──
+function messagesToTensor(messages, roomId) {
+  const tracks = [];
+  const trackMap = {};
+  let startTime = null;
+
+  for (const msg of messages) {
+    if (!startTime) startTime = msg.timestamp;
+    const offset = (msg.timestamp - startTime) / 1000;
+    if (!trackMap[msg.speaker]) {
+      trackMap[msg.speaker] = tracks.length;
+      tracks.push({ track: msg.speaker, channel: tracks.length, notes: [] });
+    }
+    const text = msg.text;
+    const sentiment = text.includes('?') ? 'curious' :
+      /good|great|nice|cool|love/i.test(text) ? 'joyful' :
+      /bad|wrong|broken|error/i.test(text) ? 'frustrated' :
+      /fixed|solved|done/i.test(text) ? 'resolved' : 'neutral';
+    const colors = {
+      curious: '#93c5fd', joyful: '#3b82f6', frustrated: '#f97316',
+      resolved: '#22c55e', neutral: '#9ca3af',
+    };
+    tracks[trackMap[msg.speaker]].notes.push({
+      pitch: 60, velocity: 70, start: offset,
+      duration: Math.max(0.5, text.length / 80),
+      text, sentiment, color: colors[sentiment],
+    });
+  }
+
+  const duration = tracks.reduce((max, t) => {
+    for (const n of t.notes) max = Math.max(max, n.start + n.duration);
+    return max;
+  }, 0);
+
+  return {
+    title: `Live — ${roomId}`, roomId, tempo: 120, key: 'Cmaj',
+    timeSignature: '12/8', duration, trackCount: tracks.length,
+    noteCount: tracks.reduce((s, t) => s + t.notes.length, 0), tracks,
+  };
+}
+
+// ── Canvas Click → Event Tooltip ──
+canvas.addEventListener('click', (e) => {
+  if (!state.tensorData) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left;
+  const cy = e.clientY - rect.top;
+
+  // Find nearest event
+  let nearest = null;
+  let nearestDist = Infinity;
+
+  for (const track of state.tensorData.tracks) {
+    for (const note of track.notes) {
+      const pos = getVesselPositionAtTime(note.start);
+      if (!pos) continue;
+      const p = project(pos.lat, pos.lon);
+      const dist = Math.hypot(cx - p.x, cy - p.y);
+      if (dist < 15 && dist < nearestDist) {
+        nearest = { ...note, agent: track.track };
+        nearestDist = dist;
+      }
+    }
+  }
+
+  if (nearest) {
+    const tt = document.getElementById('chart-tooltip');
+    tt.querySelector('.ct-agent').textContent = nearest.agent;
+    tt.querySelector('.ct-meta').textContent =
+      `${nearest.sentiment} | ${formatTime(nearest.start)} | vel ${nearest.velocity}`;
+    tt.querySelector('.ct-text').textContent = nearest.text;
+    tt.style.display = 'block';
+    tt.style.left = `${Math.min(e.clientX + 12, window.innerWidth - 370)}px`;
+    tt.style.top = `${e.clientY + 12}px`;
+    setTimeout(() => tt.style.display = 'none', 5000);
+  }
+});
+
+// ── Init ──
+resizeCanvas();
+initSliderTicks();
+</script>
+
+</body>
+</html>

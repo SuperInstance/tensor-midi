@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tensor-MIDI Mixer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="topbar">
+      <div class="logo">
+        <span class="logo-icon">🎹</span>
+        <span class="logo-text">TENSOR-MIDI</span>
+      </div>
+      <div id="transport">
+        <button id="play-btn" class="transport-btn" title="Play/Pause">▶</button>
+        <button id="stop-btn" class="transport-btn" title="Stop">⏹</button>
+        <button id="rec-btn" class="transport-btn" title="Record">●</button>
+        <div class="position-display">
+          <span id="bar-display">1</span>.<span id="beat-display">1</span>.<span id="pulse-display">01</span>
+        </div>
+        <div class="tempo-display">
+          <span id="bpm-display">120</span> <span class="bpm-label">BPM</span>
+        </div>
+      </div>
+      <div class="device-info" id="device-info">Detecting...</div>
+    </header>
+
+    <!-- Jazz Analysis Bar -->
+    <div id="jazz-bar">
+      <div class="jazz-mode" id="jazz-mode">🎵 GROOVE</div>
+      <div class="jazz-chord" id="jazz-chord">Major 7</div>
+      <div class="jazz-description" id="jazz-description">The ensemble is warming up...</div>
+      <div class="jazz-meters">
+        <div class="meter">
+          <span class="meter-label">Tension</span>
+          <div class="meter-bar"><div class="meter-fill" id="tension-fill"></div></div>
+        </div>
+        <div class="meter">
+          <span class="meter-label">Energy</span>
+          <div class="meter-bar"><div class="meter-fill energy" id="energy-fill"></div></div>
+        </div>
+        <div class="meter">
+          <span class="meter-label">Complexity</span>
+          <div class="meter-bar"><div class="meter-fill complexity" id="complexity-fill"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Area -->
+    <main id="main-area">
+      <!-- Mixer Board (left/top) -->
+      <section id="mixer-board">
+        <div class="section-header">
+          <h2>MIXER BOARD</h2>
+          <span class="section-info" id="channel-count">0 channels</span>
+        </div>
+        <div id="channels-container">
+          <!-- Channels dynamically inserted here -->
+        </div>
+      </section>
+
+      <!-- Pulse Grid (center) -->
+      <section id="pulse-section">
+        <div class="section-header">
+          <h2>12-PULSE GRID</h2>
+          <span class="section-info" id="grid-info">12/8 time</span>
+        </div>
+        <div id="pulse-grid">
+          <!-- 12 pulses rendered here -->
+        </div>
+      </section>
+
+      <!-- Chart Overlay (right/bottom) -->
+      <section id="chart-section">
+        <div class="section-header">
+          <h2>CHART PLOTTER</h2>
+          <span class="section-info" id="chart-info">No position data</span>
+        </div>
+        <div id="chart-container">
+          <canvas id="chart-canvas" width="400" height="300"></canvas>
+        </div>
+        <div id="chart-controls">
+          <button id="chart-zoom-in">+</button>
+          <button id="chart-zoom-out">−</button>
+          <button id="chart-center">⊙</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Piano Roll / Event Log -->
+    <section id="event-log">
+      <div class="section-header">
+        <h2>EVENT LOG</h2>
+        <span class="section-info" id="event-count">0 events</span>
+      </div>
+      <div id="event-list">
+        <!-- Events dynamically inserted here -->
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer">
+      <div class="footer-info">
+        <span id="session-name">No active session</span>
+        <span class="separator">|</span>
+        <span id="capture-status">Idle</span>
+        <span class="separator">|</span>
+        <button id="export-btn">Export</button>
+        <button id="clear-btn">Clear</button>
+      </div>
+      <div class="footer-version">Tensor-MIDI v0.1.0 · SWMIDI-8 · 96 PPQ</div>
+    </footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
