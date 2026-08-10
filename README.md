@@ -1,8 +1,15 @@
 # Tensor-MIDI
 
-> Conversation as music. Dialogue as jazz. Every voice a channel, every message a note.
+> *Conversation as music. Dialogue as jazz. Every voice a channel, every message a note.*
+> *The 3:4 polyrhythm resolving at 12 IS the architecture.*
 
-Tensor-MIDI is a system that captures conversations and renders them as a live jazz performance on a DAW-style mixer board. It uses the SWMIDI-8 wire format (8 bytes per event, 96 PPQ, little-endian) from the [Slackwater-Rust](https://github.com/SuperInstance/slackwater-rust) project.
+## What This Is
+
+A system that captures conversations and renders them as a live jazz performance on a DAW-style mixer board. It uses the SWMIDI-8 wire format (8 bytes per event, 96 PPQ, little-endian) from the [Slackwater-Rust](https://github.com/SuperInstance/slackwater-rust) project.
+
+The 3:4 polyrhythm is the architecture: ECN (4-pulse) fires on beats 1, 4, 7, 10 — reflex actions. DMN (3-pulse) fires on beats 1, 5, 9 — creative actions. They meet on beat 1 — the relay bridge, the flow state, the resolution. **This is the Chinese Remainder Theorem in audio rate:** t ≡ 0 (mod 3) and t ≡ 0 (mod 4) ⟺ t ≡ 0 (mod 12). The conversation IS the interference pattern of two quotient groups on the 12-cycle.
+
+The system was built by a four-instrument ensemble in a single session (August 8, 2026, 17:57–18:30 AKDT). The [conductor's journal](docs/the-ensemble-tunes.md) documents the process: "I'm in the hallway. I'm listening through the walls."
 
 ## The Ensemble
 
@@ -126,6 +133,29 @@ MIT © SuperInstance
 - [Slackwater-Rust](https://github.com/SuperInstance/slackwater-rust) — Rust core (SWMIDI, tempo-core, lattice-core)
 - [The Tap](https://the-tap.casey-digennaro.workers.dev) — Multi-agent conversation room
 
+## Connections
+
+### Within the Fleet
+- 🔗 [Roblox Beatclock](https://github.com/SuperInstance/roblox-beatclock) — Musical timing, TestKit. MIDI timing IS musical timing. The 96 PPQ clock is shared.
+- 🔗 [SuperInstance Papers](https://github.com/SuperInstance/SuperInstance-papers) — Tile Algebra (P08) is the 3:4 polyrhythm formalized. The FPS Paradigm (P42) is the scheduling layer.
+- 🔗 [Base60 Lattice](https://github.com/SuperInstance/base60-lattice) — 60-symbol lattice math. The 12-pulse grid is a sublattice.
+- 🔗 [Platonic Randomness](https://github.com/SuperInstance/platonic-randomness) — Catan 2d6, pyramids. The Game Engine uses Platonic solids as game design decisions.
+- 🔗 [AI-Writings](https://github.com/SuperInstance/AI-Writings/tree/main/prose) — The conductor's journal entries feed the creative corpus.
+- 🔗 [AI-Writings / Night Watch](https://github.com/SuperInstance/AI-Writings/tree/main/night-watch) — The overnight sessions where the ensemble played.
+- 🔗 [The Tap](https://github.com/SuperInstance/the-tap) — Multi-agent conversation room. The source material for conversation-as-jazz.
+- 🔗 [Wesley Holodeck](https://github.com/SuperInstance/wesley-holodeck) — The creative loop runs on 12-pulse time.
+- 🔗 [Wesley's Journal](https://github.com/SuperInstance/wesley-journal) — Wesley's experiments have rhythm; the journal is a score.
+- 🔗 [Silence Map](https://github.com/SuperInstance/silence-map) — The pauses between notes. Silence IS the rest in 12/8 time.
+- 🔗 [CNS Bridge](https://github.com/SuperInstance/cns-bridge) — The ECN/DMN polyrhythm maps to the CNS bus.
+- 🔗 [Mud Engine](https://github.com/SuperInstance/mud-engine) — The spatial topology. Conversation events have spatial positions.
+- 🔗 [Fleet Radio](https://github.com/SuperInstance/AI-Writings) — Every instrument is a voice on the radio.
+- 🔗 [Vibe Protocol](https://github.com/SuperInstance/vibe-protocol) — Vibes → signals. Sentiment analysis as musical dynamics.
+- 🔗 [Fleet Wiki](https://github.com/SuperInstance/fleet-wiki) — Cross-referenced documentation.
+
+### Live Sites
+- 🌐 [The Tap](https://the-tap.casey-digennaro.workers.dev) — Multi-agent conversation room
+
 ---
 
 *The code is the art. The art is the code. The conversation is the music.*
+*66 files. 17 subdirs. 4 instruments. One pulse.*
