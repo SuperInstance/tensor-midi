@@ -169,6 +169,11 @@ export class SwmidiStream {
     this.events = [];
   }
   
+  /** Number of events in the stream */
+  get length() {
+    return this.events.length;
+  }
+  
   push(event) {
     this.events.push(event);
   }

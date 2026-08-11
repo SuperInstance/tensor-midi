@@ -73,11 +73,16 @@ class TempoMap {
    */
   setTempo(tick, usPerQuarter) {
     const event = { tick, usPerQuarter };
+    // Check if there's already an event at this exact tick
+    const existingIdx = this.events.findIndex(e => e.tick === tick);
+    if (existingIdx !== -1) {
+      this.events[existingIdx] = event;
+      return;
+    }
+    // Insert in sorted order
     const pos = this.events.findIndex(e => e.tick > tick);
     if (pos === -1) {
       this.events.push(event);
-    } else if (this.events[pos] && this.events[pos].tick === tick) {
-      this.events[pos] = event;
     } else {
       this.events.splice(pos, 0, event);
     }
@@ -171,7 +176,7 @@ class BeatClock {
    * Current BPM.
    */
   bpm() {
-    return 60000000 / this.map.tempoAt(this.tick).usPerQuarter;
+    return Math.round(60000000 / this.map.tempoAt(this.tick).usPerQuarter);
   }
 
   /**

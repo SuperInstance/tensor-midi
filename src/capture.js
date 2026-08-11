@@ -70,7 +70,7 @@ export function analyzeSentiment(text) {
   
   return { pitch, friction, weight, sentiment: {
     positivity, negativity, questionScore, creativity,
-    label: negativity > positivity ? 'tense' : creativity > 0 ? 'creative' : questionScore > 0 ? 'inquiring' : positivity > 0 ? 'bright' : 'neutral',
+    label: negativity >= positivity && negativity > 0 ? 'tense' : creativity > 0 ? 'creative' : questionScore > 0 ? 'inquiring' : positivity > 0 ? 'bright' : 'neutral',
   }};
 }
 
@@ -194,5 +194,7 @@ export class MidiCapture {
     this.grid.clear();
     this.messages = [];
     this.clock = new BeatClock();
+    this.participants = new Map();
+    this.channelCounter = 0;
   }
 }
