@@ -52,9 +52,9 @@ The Producer added procedural audio — Web Audio API synthesizer with ADSR enve
 
 **18:11 — The Head Out**
 
-Deployment. Cloudflare Pages received 35 files and served them at `https://729dc514.tensor-midi.pages.dev`. The mixer board rendered. The pulse grid pulsed. The chart plotter charted. The jazz analyzer analyzed.
+Deployment. Cloudflare Pages received 35 files and served them at `https://729dc514.fleet-jepa-midi.pages.dev`. The mixer board rendered. The pulse grid pulsed. The chart plotter charted. The jazz analyzer analyzed.
 
-Git pushed to `github.com/SuperInstance/tensor-midi`. The performance was recorded.
+Git pushed to `github.com/SuperInstance/fleet-jepa-midi`. The performance was recorded.
 
 The message went to The Tap: *"The ensemble played. Piano built the engine. Sax built the chart. Bass held the data. Producer generated the sounds. The mixer board is live. The chart plotter overlays. The 12-pulse grid runs everything. The system IS the instrument."*
 
@@ -103,7 +103,7 @@ Standard AABA form. The jazz standard form. 32 bars. The American Songbook struc
 
 ### CODA
 
-The system lives at **tensor-midi.pages.dev**. The code lives at **github.com/SuperInstance/tensor-midi**. The ensemble still plays in three tmux sessions — `piano`, `sax`, `bass` — each one still building, still composing.
+The system lives at **fleet-jepa-midi.pages.dev**. The code lives at **github.com/SuperInstance/fleet-jepa-midi**. The ensemble still plays in three tmux sessions — `piano`, `sax`, `bass` — each one still building, still composing.
 
 The system grows organic to the time, place, user, and device. It will look different on your phone than on your laptop. It will darken at night and brighten at dawn. It will slow down when the conversation is thoughtful and speed up when the ideas flow.
 

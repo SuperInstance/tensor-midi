@@ -73,7 +73,7 @@ The `Capture` struct owns everything: the ring buffer, the pulse grid, the parti
 
 The key insight: **lifetimes aren't about memory safety in the garbage-collected sense. They're about documenting who can read what, when. The borrow checker is a design tool that reveals the topology of your data flow.**
 
-### 2. C99 — `tensor-midi/native/tensor_midi.c` + `tensor_midi.h`
+### 2. C99 — `fleet-jepa-midi/native/tensor_midi.c` + `tensor_midi.h`
 
 **Status: ✅ 17/17 tests passing**
 
@@ -92,7 +92,7 @@ The `intervals` array in `tm_detect_tempo()` is stack-allocated at `uint64_t int
 
 C teaches: **the minimum viable data structure is the one where every byte is accounted for. You discover that you don't need dynamic allocation for 90% of your use cases. The remaining 10% is where the real engineering lives.**
 
-### 3. ZIG — `tensor-midi/native/tensor_midi.zig`
+### 3. ZIG — `fleet-jepa-midi/native/tensor_midi.zig`
 
 **Status: ✅ Written, follows Zig 0.14+ syntax (Zig compiler not installed on this system)**
 
@@ -112,7 +112,7 @@ The error handling is explicit: `EventType.fromNibble()` returns `?EventType` (a
 
 Zig teaches: **some sizes are truly knowable at compile time (the ring buffer capacity, the pitch bitmap size, the word table lengths). Some are only knowable at runtime (the number of messages, the text length). The language forces you to sort them into the right category — and the compiler checks your work.**
 
-### 4. PYTHON — `tensor-midi/bindings/tensor_midi.py`
+### 4. PYTHON — `fleet-jepa-midi/bindings/tensor_midi.py`
 
 **Status: ✅ 24/24 tests passing**
 
@@ -132,7 +132,7 @@ The `frozenset` word tables are immutable — the GIL guarantees thread-safe acc
 
 Python teaches: **the natural batch boundary is the function call that processes a list. The GIL makes this not a limitation but a design principle: batch your work, process it, return the result. Don't try to be clever about concurrency — be clear about boundaries.**
 
-### 5. CUDA — `tensor-midi/native/sentiment_kernel.cu`
+### 5. CUDA — `fleet-jepa-midi/native/sentiment_kernel.cu`
 
 **Status: ✅ Written, requires nvcc to compile (no GPU on this system)**
 
@@ -230,6 +230,6 @@ And so could the engine. Five languages, one system, infinite projections.
 
 ---
 
-**Repository:** `github.com/SuperInstance/tensor-midi`
+**Repository:** `github.com/SuperInstance/fleet-jepa-midi`
 **Rust workspace:** `github.com/SuperInstance/slackwater-rust` → `crates/tensor-midi-core`
 **Built:** August 8, 2026

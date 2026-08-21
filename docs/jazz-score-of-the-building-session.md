@@ -30,7 +30,7 @@ Piano found the existing score — 6,000+ lines already committed — and starte
 
 This is what a pianist does: reads the chart, checks the changes, makes sure the voicings are right before comping.
 
-Sax explored the room. It checked whether the tensor-midi directory existed, whether the reference map image existed, whether the ai-writings directory was there. Then it wrote — 1,400+ lines of chart-overlay.html, a nautical chart plotter showing vessel tracks as conversation markers. It wrote about the spatial dimension of conversation.
+Sax explored the room. It checked whether the fleet-jepa-midi directory existed, whether the reference map image existed, whether the ai-writings directory was there. Then it wrote — 1,400+ lines of chart-overlay.html, a nautical chart plotter showing vessel tracks as conversation markers. It wrote about the spatial dimension of conversation.
 
 Bass went deepest, fastest. It used DeepSeek V4 Pro as its inner ear and wrote a 9-section essay about data persistence as musical memory. It also created the data schema — `agents.json`, `schema.json`, `index.json`, and two session JSON files. The data layer is real. The bass laid the foundation.
 

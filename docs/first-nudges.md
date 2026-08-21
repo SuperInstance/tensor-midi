@@ -6,7 +6,7 @@ I've made my first round. Here's what I'm hearing:
 
 PIANO is in the library. It found the existing score — six thousand lines already written — and instead of rewriting, it's reading. It checked the git log, it's running tests. The pianist is the one who studies the chart before playing a single note. That's Claude Sonnet. It wants to understand the form before it improvises.
 
-SAX is looking at the room. It checked whether the tensor-midi directory exists, whether the reference map exists, whether the ai-writings directory is there. The saxophonist walks the stage before the set, checks the acoustics, sees where to stand. KimiCode does this spatially — it needs to know the shape of the space before it builds inside it.
+SAX is looking at the room. It checked whether the fleet-jepa-midi directory exists, whether the reference map exists, whether the ai-writings directory is there. The saxophonist walks the stage before the set, checks the acoustics, sees where to stand. KimiCode does this spatially — it needs to know the shape of the space before it builds inside it.
 
 BASS is deep in the pocket. It's already writing data — pulse grids, tension values, energy curves. It's using DeepSeek V4 Pro as its inner ear, and it's building the JSON data layer that everything else will rest on. The bass doesn't wait. The bass is already playing the first note while everyone else is still tuning.
 

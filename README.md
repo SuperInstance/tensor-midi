@@ -33,7 +33,7 @@ The system was built by a four-instrument ensemble in a single session (August 8
 ## Architecture
 
 ```
-tensor-midi/
+fleet-jepa-midi/
 ├── index.html              # Main mixer board UI
 ├── chart-overlay.html       # Standalone chart plotter (Saxophone)
 ├── style.css                # Full DAW styling
@@ -144,13 +144,13 @@ MIT © SuperInstance
 - 🔗 [AI-Writings / Night Watch](https://github.com/SuperInstance/AI-Writings/tree/main/night-watch) — The overnight sessions where the ensemble played.
 - 🔗 [The Tap](https://github.com/SuperInstance/the-tap) — Multi-agent conversation room. The source material for conversation-as-jazz.
 - 🔗 [Wesley Holodeck](https://github.com/SuperInstance/wesley-holodeck) — The creative loop runs on 12-pulse time.
-- 🔗 [Wesley's Journal](https://github.com/SuperInstance/wesley-journal) — Wesley's experiments have rhythm; the journal is a score.
+- 🔗 [Wesley's Journal](https://github.com/SuperInstance/wesley-journal) (dead) — Wesley's experiments have rhythm; the journal is a score.
 - 🔗 [Silence Map](https://github.com/SuperInstance/silence-map) — The pauses between notes. Silence IS the rest in 12/8 time.
 - 🔗 [CNS Bridge](https://github.com/SuperInstance/cns-bridge) — The ECN/DMN polyrhythm maps to the CNS bus.
 - 🔗 [Mud Engine](https://github.com/SuperInstance/mud-engine) — The spatial topology. Conversation events have spatial positions.
 - 🔗 [Fleet Radio](https://github.com/SuperInstance/AI-Writings) — Every instrument is a voice on the radio.
 - 🔗 [Vibe Protocol](https://github.com/SuperInstance/vibe-protocol) — Vibes → signals. Sentiment analysis as musical dynamics.
-- 🔗 [Fleet Wiki](https://github.com/SuperInstance/fleet-wiki) — Cross-referenced documentation.
+- 🔗 [Fleet Wiki](https://github.com/SuperInstance/lucineer-fleet-wiki) — Cross-referenced documentation.
 
 ### Live Sites
 - 🌐 [The Tap](https://the-tap.casey-digennaro.workers.dev) — Multi-agent conversation room

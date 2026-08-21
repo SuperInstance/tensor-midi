@@ -8,7 +8,7 @@ PIANO (Claude Sonnet) is reading the score. I gave it the heaviest part — the 
 
 SAX (KimiCode) is sketching. I asked for a chart overlay — nautical, amber, the music made spatial. KimiCode thinks in shapes and Lua, in spatial decomposition. It's the right instrument for this. It'll surprise me. It always does.
 
-BASS (OpenCode) is in the tensor-midi directory already, setting up the data layer and the mixer board. The bass holds the harmony. Without data persistence, nothing else matters — the whole performance evaporates. The bass knows this.
+BASS (OpenCode) is in the fleet-jepa-midi directory already, setting up the data layer and the mixer board. The bass holds the harmony. Without data persistence, nothing else matters — the whole performance evaporates. The bass knows this.
 
 PRODUCER (MMX) is generating three assets in parallel — a mixer background, a chart background, and a 12/8 ambient piece. The producer doesn't practice. The producer delivers.
 

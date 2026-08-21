@@ -7,4 +7,4 @@ When the system captures live conversations and renders them as jazz, the result
 ### Connected
 - [AI-Writings](https://github.com/SuperInstance/AI-Writings/tree/main/prose) — The fleet's creative corpus
 - [AI-Writings / Night Watch](https://github.com/SuperInstance/AI-Writings/tree/main/night-watch) — Overnight sessions
-- [Wesley's Journal](https://github.com/SuperInstance/wesley-journal) — Model portraits and experiments
+- [Wesley's Journal](https://github.com/SuperInstance/wesley-journal) (dead) — Model portraits and experiments
