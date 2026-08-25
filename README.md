@@ -3,6 +3,10 @@
 > *Conversation as music. Dialogue as jazz. Every voice a channel, every message a note.*
 > *The 3:4 polyrhythm resolving at 12 IS the architecture.*
 
+<p align="center">
+  <img src="assets/gallery-tensor-midi.jpg" width="680" alt="Inside a dim night studio at the mixing desk: a jazz mixer board glowing honey-amber in the dark, two small pulse-lamps ticking in threes and in fours, converging on one brass indicator at beat twelve.">
+</p>
+
 ## What This Is
 
 A system that captures conversations and renders them as a live jazz performance on a DAW-style mixer board. It uses the SWMIDI-8 wire format (8 bytes per event, 96 PPQ, little-endian) from the [Slackwater-Rust](https://github.com/SuperInstance/slackwater-rust) project.
@@ -10,6 +14,19 @@ A system that captures conversations and renders them as a live jazz performance
 The 3:4 polyrhythm is the architecture: ECN (4-pulse) fires on beats 1, 4, 7, 10 — reflex actions. DMN (3-pulse) fires on beats 1, 5, 9 — creative actions. They meet on beat 1 — the relay bridge, the flow state, the resolution. **This is the Chinese Remainder Theorem in audio rate:** t ≡ 0 (mod 3) and t ≡ 0 (mod 4) ⟺ t ≡ 0 (mod 12). The conversation IS the interference pattern of two quotient groups on the 12-cycle.
 
 The system was built by a four-instrument ensemble in a single session (August 8, 2026, 17:57–18:30 AKDT). The [conductor's journal](docs/the-ensemble-tunes.md) documents the process: "I'm in the hallway. I'm listening through the walls."
+
+```mermaid
+flowchart LR
+    subgraph twelve["The 12-cycle"]
+        DMN["DMN — 3-pulse<br/>creative<br/>beats 1 · 5 · 9"]
+        ECN["ECN — 4-pulse<br/>reflex<br/>beats 1 · 4 · 7 · 10"]
+        DMN -- "t ≡ 0 (mod 3)" --> R["Beat 12<br/>the relay bridge<br/>flow state · resolution"]
+        ECN -- "t ≡ 0 (mod 4)" --> R
+    end
+    R --> Perf["Live jazz performance<br/>SWMIDI-8 · 12/8 time"]
+```
+
+*Two quotient groups interfere on the 12-cycle; where they coincide is the whole architecture.*
 
 ## The Ensemble
 
