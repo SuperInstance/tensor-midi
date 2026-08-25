@@ -1,0 +1,14 @@
+**TRACK: Peace Channel (canon-03)**
+[MetaData]
+key: C | tempo: 92 | swing: 0% | subdivision: 8th
+time: 4/4
+
+[A] (8 bars)
+@piano | c2 . . . g3-b3-e4 . . | vel: 58
+@piano | c2 . . . a3-c4-f4 . . | vel: 54
+@piano | c2 . . . b3-d4-g4 . . | vel: 62
+@piano | c2 . . . g3-b3-e4 . . | vel: 56
+@piano | c2 . . (rest) a3-d4-g4 . b3-e4-a4 . | vel: 66
+@piano | c2 . . . g#3-c4-e4 . . | vel: 58
+@piano | c2 . . a3-c4-f4 . g3-b3-e4 . . | vel: 60
+@piano | c2 . . . g3-b3-e4 . . | vel: 48

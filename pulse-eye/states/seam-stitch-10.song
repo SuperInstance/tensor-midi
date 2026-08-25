@@ -1,0 +1,23 @@
+**TRACK: seamstress-gate1 take**
+[MetaData]
+key: C | tempo: 100 | swing: 0% | subdivision: 8th
+time: 4/4
+
+[A] (8 bars)
+@piano | . e3-a3-d4-g4 . . . . e3-a3-d4-g4 g3 | vel: 70
+@piano | . e3-a3-d4-g4 . . . . e3-a3-d4-g4 c4 | vel: 70
+@piano | . a3-d4-g4-c5 . . . . a3-d4-g4-c5 f3 | vel: 70
+@piano | . a2-c#3-f3-a#3 . . . . a2-c#3-f3-a#3 b3 | vel: 70
+@piano | . e3-a3-d4-g4 . . . . e3-a3-d4-g4 e4 | vel: 70
+@piano | . a3-d4-g4-c5 . . . . a3-d4-g4-c5 c4 | vel: 70
+@piano | . a3-d4-g4-c5 . . . . a3-d4-g4-c5 f3 | vel: 70
+@piano | . a2-c#3-f3-a#3 . . . . a2-c#3-f3-a#3 d4 | vel: 70
+[B] (8 bars)
+@piano | . b3-e4-a4-d5 . . . . b3-e4-a4-d5 g3 | vel: 70
+@piano | . b2-d#3-g3-c4 . . . . b2-d#3-g3-c4 c4 | vel: 70
+@piano | . a3-d4-g4-c5 . . . . a3-d4-g4-c5 f3 | vel: 70
+@piano | . a2-c#3-f3-a#3 . . . . a2-c#3-f3-a#3 b3 | vel: 70
+@piano | . e3-a3-d4-g4 . . . . e3-a3-d4-g4 e4 | vel: 70
+@piano | . a3-d4-g4-c5 . . . . a3-d4-g4-c5 f3 | vel: 70
+@piano | . a2-c#3-f3-a#3 . . . . a2-c#3-f3-a#3 b3 | vel: 70
+@piano | . e3-a3-d4-g4 . . . . e3-a3-d4-g4 b3 | vel: 70

@@ -1,0 +1,21 @@
+**TRACK: Unheard Duke**
+[MetaData]
+key: C | tempo: 112 | swing: 0% | subdivision: 8th
+time: 4/4
+
+@piano | C3-G3-D4 . E4 G4 (rest) C5 . .
+@piano | Db3-Ab3-Eb4 . F4 Ab4 Db5 G5 .
+@piano | A2-E3-G3-D4 . . G4 . F4 E4 .
+@piano | G2-F3-B3-E4 . A4 . B4 (rest) (rest) (rest)
+@piano | (rest) C3-G3-D4 . E4 G4 (rest) C5 .
+@piano | (rest) (rest) Eb5 . D5 B4 . (rest) .
+@piano | F3-Ab3-C4-E4 . Gb3-B3-Db4-F4 . G3-B3-D4-F4 . A5 .
+@piano | G2-F3-Ab3-B3 (rest) (rest) D5 (rest) (rest) (rest) (rest)
+@piano | Db4-F4-Ab4-C5 . . . Eb5 Db5 C5 Ab5
+@piano | E3-G#3-B3-D5 . . D5 C5 . B4 .
+@piano | A2-G3-B3-E4 . . C#4-E4-G4-B4 . A4 . .
+@piano | D3-F3-C4-E4 . Db3-F3-Ab3-B3 . B4 (rest) (rest) .
+@piano | C2-G2-D3 . E3 G3 (rest) C3 . .
+@piano | Db3-Ab3-Eb4 (rest) (rest) G3-B3-F4 (rest) (rest) (rest) (rest)
+@piano | C3-G3-Eb4 . D4 . Eb5 D5 B4 (rest)
+@piano | C2-G2 . . B3-D4-E4-A4 . . C5 .

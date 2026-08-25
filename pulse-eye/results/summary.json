@@ -1,0 +1,182 @@
+{
+ "tap": [
+  {
+   "tag": "tap-T1",
+   "mode_majority": "ballad",
+   "mode_hist": {
+    "free": 6,
+    "ballad": 10
+   },
+   "strong_conv_frac": 0.0,
+   "weak_conv_bars": 0,
+   "shared_pulse_frac": 0.0,
+   "avg_energy": 18.6,
+   "avg_complexity": 8.4,
+   "avg_tension": 0.0,
+   "chord_final": "aug",
+   "description": "Open, free, exploratory. The harmony lives in floating augmented sound. Tension: 0%. Energy: 6%. Complexity: 6%."
+  },
+  {
+   "tag": "tap-T2",
+   "mode_majority": "ballad",
+   "mode_hist": {
+    "solo": 6,
+    "ballad": 10
+   },
+   "strong_conv_frac": 0.0,
+   "weak_conv_bars": 16,
+   "shared_pulse_frac": 1.0,
+   "avg_energy": 27.9,
+   "avg_complexity": 22.8,
+   "avg_tension": 0.0,
+   "chord_final": "aug",
+   "description": "One voice is soloing. The harmony lives in floating augmented sound. Tension: 0%. Energy: 19%. Complexity: 25%."
+  },
+  {
+   "tag": "tap-T3",
+   "mode_majority": "ballad",
+   "mode_hist": {
+    "solo": 6,
+    "ballad": 9,
+    "groove": 1
+   },
+   "strong_conv_frac": 0.0,
+   "weak_conv_bars": 16,
+   "shared_pulse_frac": 1.0,
+   "avg_energy": 28.3,
+   "avg_complexity": 22.8,
+   "avg_tension": 0.0,
+   "chord_final": "aug",
+   "description": "One voice is soloing. The harmony lives in floating augmented sound. Tension: 0%. Energy: 19%. Complexity: 25%."
+  },
+  {
+   "tag": "tap-T4",
+   "mode_majority": "comping",
+   "mode_hist": {
+    "comping": 15,
+    "solo": 1
+   },
+   "strong_conv_frac": 0.938,
+   "weak_conv_bars": 1,
+   "shared_pulse_frac": 1.0,
+   "avg_energy": 29.9,
+   "avg_complexity": 29.6,
+   "avg_tension": 0.0,
+   "chord_final": "aug",
+   "description": "One voice is soloing. The harmony lives in floating augmented sound. Tension: 0%. Energy: 19%. Complexity: 25%."
+  },
+  {
+   "tag": "tap-T5",
+   "mode_majority": "comping",
+   "mode_hist": {
+    "comping": 16
+   },
+   "strong_conv_frac": 1.0,
+   "weak_conv_bars": 0,
+   "shared_pulse_frac": 1.0,
+   "avg_energy": 31.4,
+   "avg_complexity": 38.7,
+   "avg_tension": 0.0,
+   "chord_final": "aug",
+   "description": "Everyone's comping for each other. The harmony lives in floating augmented sound. Tension: 0%. Energy: 22%. Complexity: 36%."
+  }
+ ],
+ "tap_truth": {
+  "lock_at": "T3",
+  "source": "BUILD-JOURNAL.md: bass v8 'From where I stand the pocket is locked - piano can come in whenever ready' \u2014 after taking the drummer's bar-13 deal"
+ },
+ "vocal_truth": {
+  "fits": "A",
+  "source": "BUILD-JOURNAL.md: vocalist chose the smoke reading because 'the room had already decided it... anything projected would have broken the floor the rhythm section spent the whole conversation laying'"
+ },
+ "duke_truth": {
+  "critic_pass2": "critique 2 (register) RESOLVED; critique 1 (dynamics) HALF-SURVIVES (velocity_std 0.109->0.113); critique 3 survives bars 7 & 12 (syncopation 0.00); HONEST GAP: not CONVERGED, best take = version 4 (R2)",
+  "r1_axis": {
+   "treble_activity": 0.0,
+   "velocity_std": 0.109
+  }
+ },
+ "correlations": {
+  "gate_curve": [
+   7.141,
+   5.147,
+   3.477,
+   2.791,
+   2.095,
+   2.095,
+   1.966,
+   1.822,
+   1.674,
+   1.686
+  ],
+  "energy": [
+   26.0,
+   20.0,
+   20.375,
+   17.375,
+   20.5625,
+   20.5625,
+   20.6875,
+   20.8125,
+   21.25,
+   21.375
+  ],
+  "complexity": [
+   10.375,
+   10.375,
+   11.25,
+   11.25,
+   11.6875,
+   11.6875,
+   11.6875,
+   11.8125,
+   12.5625,
+   12.625
+  ],
+  "tension": [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  "modes": [
+   "ballad",
+   "ballad",
+   "ballad",
+   "ballad",
+   "ballad",
+   "ballad",
+   "ballad",
+   "ballad",
+   "ballad",
+   "ballad"
+  ],
+  "pearson_energy_vs_distance": 0.5661148363096203,
+  "spearman_energy_vs_distance": -0.4024390243902438,
+  "pearson_complexity_vs_distance": -0.8768631124085356,
+  "spearman_complexity_vs_distance": -0.9722527186796163,
+  "pearson_energy_vs_note_density": 0.7707153518631655,
+  "canon_modes": [
+   "free",
+   "free",
+   "free",
+   "free",
+   "free",
+   "free"
+  ],
+  "canon_energy": [
+   17.0,
+   13.75,
+   19.875,
+   16.25,
+   13.875,
+   18.125
+  ]
+ }
+}

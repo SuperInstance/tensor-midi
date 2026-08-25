@@ -1,0 +1,14 @@
+**TRACK: Peri's Gate (canon-02)**
+[MetaData]
+key: C | tempo: 108 | swing: 0% | subdivision: 8th
+time: 4/4
+
+[A] (8 bars)
+@piano | (rest) f3-a3-c4-e4 . . f3-a3-c4-e4 . | vel: 72
+@piano | . f3-a3-b3-e4 . . (rest) e3-g3-b3-d4 . | vel: 78
+@piano | e3-g3-b3-d4 . . e3-g3-b3-d4 . . (rest) | vel: 68
+@piano | (rest) g3-b3-c4-e4 . . g3-b3-c4-e4 . | vel: 66
+@piano | . a3-c4-e4-g4 . (rest) f3-a3-c4-e4 . . | vel: 74
+@piano | f3-a3-b3-e4 . . d4-f4-g4-b4 . (rest) . | vel: 70
+@piano | (rest) e3-g3-b3-d4 . . e3-g3-b3-d4 . | vel: 64
+@piano | e3-g3-b3-d4 . . . . (rest) (rest) (rest) | vel: 54

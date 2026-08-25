@@ -1,0 +1,21 @@
+**TRACK: Afterhours at The Tap**
+[MetaData]
+key: Am | tempo: 96 | swing: 0% | subdivision: 8th
+time: 4/4
+
+[A] (16 bars)
+@bass   | a1 . e2 . | a2 g2 e2 c2 | d2 . a1 . | d2 f2 e2 d2 | f1 . c2 . | g1 . d2 . | a1 b1 c2 d2 | e2 . b1 g#1 | vel: 66 | inst: upright bass
+@bass   | a1 . - - | d2 c2 a1 . | f2 e2 d2 c2 | e1 . b1 d2 | a1 . c2 . e2 . - g2 | f2 e2 d2 a1 | e2 d2 b1 g#1 | a1 . . . | vel: 66 | inst: upright bass
+@drums: C1 = kick feathered, D2 = brush snare, A3 = ride barely there
+@drums | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | c1 a3 d2 a3 | vel: 46 | inst: drum kit
+@drums | c1-a3 - d2 - | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | c1 a3 d2 a3 | c1 a3~~~ - - | vel: 46 | inst: drum kit
+@piano | - e3-a3-c4 . - | - e3-a3-c4 . - | - d3-f3-a3 . - | - d3-f3-a3 . - | - f3-a3-c4 . - | - g3-b3-d4 . - | - e3-a3-c4 . g#3-b3 | - e3-g#3-b3 . - | - - a3-e4~~~ - | - d3-f3-a3 . - | - f3-a3-c4 . - | - e3-g#3-b3 . - | - - - a3-c4-e4 | - a3~~~ . . | - e3-g#3-b3 . - | - - - - | vel: 52
+@vocal | A4 A4 G4 E4 | E4 . D4 C4 | D4 D4 F4 E4 | F4 F4 E4 C4 |
+@vocal | C4 . D4 C4 | E4 D4 C4 B3 | E4 G4 C4 B3 | B3 E4 D4 B3 |
+@vocal | - - E4~~~ - | A3 A3 D4 F4 | E4 F4 G4 . | B4 A4 . G#4 |
+@vocal | A4 B4 C5 B4 | A4 G4 F4 E4 | E4 D4 E4 G#4 | A4~~~ - - - |
+@vocal | vel: 58 | inst: voice
+@vocal: words v1 - last boat leans out from the dock, salt on the rail, salt in the air
+@vocal: words v2 - are you waiting where the water ends, the city goes grey, the engine says maybe
+@vocal: words v3 - home... is your light on, if it's burning, leave it on
+@vocal: words v4 - and if you're there, or only the rain, salt in my shoes... home

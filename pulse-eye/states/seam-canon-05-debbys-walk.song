@@ -1,0 +1,14 @@
+**TRACK: Debby's Walk (canon-05)**
+[MetaData]
+key: C | tempo: 104 | swing: 0% | subdivision: 8th
+time: 4/4
+
+[A] (8 bars)
+@piano | . e3-g3-b3-d4 . . (rest) e3-g3-b3-d4 . | vel: 78
+@piano | . f3-a3-c4-e4 . . (rest) g3-b3-d4-f4 . | vel: 74
+@piano | (rest) e3-g3-b3-d4 . . e3-g3-b3-d4 . . | vel: 66
+@piano | . a3-c4-e4-g4 . (rest) g3-b3-c4-e4 . | vel: 70
+@piano | (rest) f3-a3-c4-e4 . g3-b3-d4-f4 . . . | vel: 76
+@piano | . f3-a3-b3-e4 . . (rest) e3-g3-b3-d4 . | vel: 68
+@piano | . e3-g3-b3-d4 . a3-c4-e4-g4 . (rest) . | vel: 72
+@piano | e3-g3-b3-d4 . . . . . (rest) (rest) | vel: 50

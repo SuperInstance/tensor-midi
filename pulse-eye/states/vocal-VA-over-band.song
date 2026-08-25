@@ -1,0 +1,12 @@
+**TRACK: Afterhours at The Tap**
+[MetaData]
+key: Am | tempo: 96 | swing: 0% | subdivision: 8th
+time: 4/4
+
+@bass   | a1 . e2 . | a2 g2 e2 c2 | d2 . a1 . | d2 f2 e2 d2 | f1 . c2 . | g1 . d2 . | a1 b1 c2 d2 | e2 . b1 g#1 | vel: 66 | inst: upright bass
+@bass   | a1 . - - | d2 c2 a1 . | f2 e2 d2 c2 | e1 . b1 d2 | a1 . c2 . e2 . - g2 | f2 e2 d2 a1 | e2 d2 b1 g#1 | a1 . . . | vel: 66 | inst: upright bass
+@drums: C1 = kick feathered, D2 = brush snare, A3 = ride barely there
+@drums | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | c1 a3 d2 a3 | vel: 46 | inst: drum kit
+@drums | c1-a3 - d2 - | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | a3 d2 a3 d2 | c1 a3 d2 a3 | c1 a3~~~ - - | vel: 46 | inst: drum kit
+@piano | - e3-a3-c4 . - | - e3-a3-c4 . - | - d3-f3-a3 . - | - d3-f3-a3 . - | - f3-a3-c4 . - | - g3-b3-d4 . - | - e3-a3-c4 . g#3-b3 | - e3-g#3-b3 . - | - - a3-e4~~~ - | - d3-f3-a3 . - | - f3-a3-c4 . - | - e3-g#3-b3 . - | - - - a3-c4-e4 | - a3~~~ . . | - e3-g#3-b3 . - | - - - - | vel: 52
+@vocal | - e3~~~ | a3~~~ . | - f3~~~ | e3~~~ . | - c4~~~ | b3~~~ . | a3 . c4 b3 | d4~~~ . | - - - - | - a3~~~ | g3~~~ . | g#3~~~ . | a3~~~ . | - f3~~~ | d4~~~ b3 | a3~~~ . | vel: 52
