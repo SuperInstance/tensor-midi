@@ -1,6 +1,6 @@
 {
   "name": "tensor-midi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Treats fleet conversations as jazz performances captured in MIDI, viewable as a DAW/mixer-board, and overlaid on a nautical chart.",
   "main": "capture.js",
   "scripts": {

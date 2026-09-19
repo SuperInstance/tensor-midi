@@ -111,6 +111,59 @@ export class Clip {
   }
 
   /**
+   * The gesture's **twist** — its third-order structure: the turning that leaves
+   * the osculating plane. `bendingEnergy` is curvature (how hard the exchange
+   * turns *within* a plane); twist is torsion (how much it turns *out* of that
+   * plane, into a fresh direction of abstraction space). A conversation that
+   * veers back and forth in one plane has high bending but **zero twist**; one
+   * whose veering keeps opening a genuinely new axis has positive twist.
+   *
+   * Per interior vertex the contribution is `sin θ`, where θ is the angle between
+   * the next segment and the osculating plane of the previous two, so each vertex
+   * contributes in [0, 1] and a straight or planar span contributes 0. Needs ≥4
+   * events. This is the fleet's *the property is in the twist*
+   * (SuperInstance/twist-engine): new structure lives in the offset that leaves
+   * the current plane. Mirrors musician-soul's `AbstractionSpline.twist_energy`.
+   */
+  twistEnergy() {
+    const p = this.path();
+    let energy = 0;
+    for (let i = 3; i < p.length; i++) {
+      const s1 = sub(p[i - 2], p[i - 3]);
+      const s2 = sub(p[i - 1], p[i - 2]);
+      const s3 = sub(p[i], p[i - 1]);
+      const n1 = norm(s1);
+      if (n1 < 1e-9) continue;
+      const e1 = s1.map((x) => x / n1);
+      const d21 = s2.reduce((s, x, k) => s + x * e1[k], 0);
+      const perp = s2.map((x, k) => x - d21 * e1[k]); // s2 ⟂ e1
+      const np = norm(perp);
+      if (np < 1e-9) continue; // s1 ∥ s2: no plane to leave
+      const e2 = perp.map((x) => x / np);
+      const n3 = norm(s3);
+      if (n3 < 1e-9) continue;
+      const d3 = s3.map((x) => x / n3);
+      const c1 = d3.reduce((s, x, k) => s + x * e1[k], 0);
+      const c2 = d3.reduce((s, x, k) => s + x * e2[k], 0);
+      const out = d3.map((x, k) => x - c1 * e1[k] - c2 * e2[k]);
+      energy += Math.min(norm(out), 1);
+    }
+    return energy;
+  }
+
+  /**
+   * How flat the gesture stays, in [0, 1]: 1 for a conversation whose motion
+   * lives in a single plane (all bending, no twist), falling toward 0 as more of
+   * its turning leaves the plane. 1 for a span too short to twist. The scale-free
+   * inverse of `twistEnergy`.
+   */
+  planarity() {
+    const vertices = Math.max(0, this.path().length - 3);
+    if (vertices === 0) return 1;
+    return Math.min(1, Math.max(0, 1 - this.twistEnergy() / vertices));
+  }
+
+  /**
    * The gesture's heading — the unit direction of its final segment. A velocity
    * through abstraction space (the conversation's `d_mu`). Zero vector if the
    * clip has fewer than two events.

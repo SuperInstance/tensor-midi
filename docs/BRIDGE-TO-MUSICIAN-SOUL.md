@@ -25,13 +25,20 @@ conversation traces. From that path:
 | Clip method | Reads | Meaning for a conversation |
 |---|---|---|
 | `arcLength()` | total travel | how far the exchange moves through possibility |
-| `bendingEnergy()` | summed turning (1 − cos) | how much it veers — restlessness vs. a steady line |
+| `bendingEnergy()` | curvature — summed turning (1 − cos) *within a plane* | how much it veers — restlessness vs. a steady line |
+| `twistEnergy()` | torsion — turning that leaves the plane (`sin θ`) | whether the veering opens a genuinely new axis, or just paces the same two |
+| `planarity()` | scale-free inverse of twist | how flat the dialogue's motion stays |
 | `tangent()` | unit heading of the last step | where the dialogue is going right now (its `d_mu`) |
 | `frictionRatio()` | fraction with `errorMask ≠ 0` | felt tension already native to SWMIDI |
 
 These mirror musician-soul's `AbstractionSpline` one-for-one, so the two repos
 now speak the same geometric language about motion through abstraction — one over
-notes, one over conversation events.
+notes, one over conversation events — and to the same **three orders**: heading
+(1st), bending/curvature (2nd), and twist/torsion (3rd). The third order is the
+fleet's *the property is in the twist*
+([twist-engine](https://github.com/SuperInstance/twist-engine)): a conversation
+that only paces back and forth in one plane has high bending but zero twist; new
+structure appears when the exchange's turning reaches out of the plane it was in.
 
 ## The bridge
 
