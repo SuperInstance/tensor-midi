@@ -88,6 +88,50 @@ describe('bendingEnergy — turning of the gesture', () => {
   });
 });
 
+describe('twistEnergy — third order (torsion) leaving the plane', () => {
+  // A conversation veering inside the (pitch, velocity) plane: bends, but never
+  // leaves the plane → zero twist. channel and friction held constant.
+  const planar = new Clip(
+    Array.from({ length: 8 }, (_, i) => {
+      const a = i * 0.6;
+      return ev({
+        channel: 0,
+        pitch: Math.round(63 + 40 * Math.cos(a)),
+        velocity: Math.round(63 + 40 * Math.sin(a)),
+        tick: i,
+      });
+    })
+  );
+  // The same veer, but steadily recruiting the channel axis each step → a helix
+  // through abstraction space → positive twist.
+  const helix = new Clip(
+    Array.from({ length: 8 }, (_, i) => {
+      const a = i * 0.6;
+      return ev({
+        channel: i,
+        pitch: Math.round(63 + 40 * Math.cos(a)),
+        velocity: Math.round(63 + 40 * Math.sin(a)),
+        tick: i,
+      });
+    })
+  );
+
+  test('a planar veer does not twist; a helix does', () => {
+    assert.ok(planar.twistEnergy() < 1e-6, `planar twist ${planar.twistEnergy()}`);
+    assert.ok(helix.twistEnergy() > planar.twistEnergy());
+    assert.ok(Number.isFinite(helix.twistEnergy()));
+  });
+
+  test('planarity is bounded and high for a flat veer', () => {
+    assert.ok(planar.planarity() > 0.95);
+    assert.ok(planar.planarity() <= 1 && planar.planarity() >= 0);
+    assert.ok(helix.planarity() < planar.planarity());
+    // Too-short clips are trivially planar.
+    assert.equal(new Clip([ev({ tick: 0 }), ev({ tick: 1 })]).planarity(), 1);
+    assert.equal(new Clip([]).twistEnergy(), 0);
+  });
+});
+
 describe('tangent — the conversation heading (d_mu)', () => {
   test('is a unit vector when the clip moves', () => {
     const c = new Clip([ev({ pitch: 0, tick: 0 }), ev({ pitch: 40, tick: 1 }), ev({ pitch: 90, tick: 2 })]);
